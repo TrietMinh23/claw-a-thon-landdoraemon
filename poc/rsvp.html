@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSVP Tracker — L&D Ops Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="_shared.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body { font-family:'Inter',sans-serif; background:#f8fafc; }
+</style>
+</head>
+<body class="text-gray-800">
+<div class="flex h-screen overflow-hidden">
+  <aside class="w-56 bg-white border-r border-gray-100 flex flex-col shadow-sm flex-shrink-0">
+    <div class="p-4 border-b border-gray-100"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold text-sm">L</div><div><div class="font-bold text-sm">L&D Ops</div><div class="text-xs text-gray-400">Zalopay · Toro AI</div></div></div></div>
+    <nav class="flex-1 p-3 space-y-0.5 text-sm">
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">← Dashboard</a>
+      <a href="emails.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Duyệt Email</a>
+      <a href="workshop.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Workshop Detail</a>
+      <a href="rsvp.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-green-50 text-green-700 font-semibold">RSVP Tracker</a>
+      <a href="feedback.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Feedback Report</a>
+      <a href="certificates.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Certificates</a>
+    </nav>
+    <div class="p-3 border-t border-gray-100"><div class="flex items-center gap-2 px-2 py-1.5"><div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold">A</div><div class="text-xs"><div class="font-medium">AnhNH19</div><div class="text-gray-400">L&D PIC</div></div></div></div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div><h1 class="text-lg font-semibold">RSVP Tracker</h1><p class="text-xs text-gray-400">Strengths-based Development · Cập nhật lần cuối: 10/06/2026 08:30 · Toro poll Graph API mỗi 60 phút</p></div>
+      <div class="flex gap-2">
+        <button onclick="simulateRefresh()" class="border border-gray-200 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 font-medium flex items-center gap-2">
+          <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Sync từ Outlook
+        </button>
+        <button onclick="downloadHRBP()" class="bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 font-medium">Xuất danh sách HRBP</button>
+      </div>
+    </header>
+
+    <div class="p-6 space-y-5">
+      <!-- Summary cards -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-green-200 shadow-sm text-center">
+          <div class="text-3xl font-bold text-green-600">78</div>
+          <div class="text-xs text-gray-500 mt-1">✓ Accepted</div>
+          <div class="text-xs text-gray-400">75%</div>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-red-200 shadow-sm text-center">
+          <div class="text-3xl font-bold text-red-500">8</div>
+          <div class="text-xs text-gray-500 mt-1">✗ Declined</div>
+          <div class="text-xs text-gray-400">7.7%</div>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-yellow-200 shadow-sm text-center">
+          <div class="text-3xl font-bold text-yellow-500">6</div>
+          <div class="text-xs text-gray-500 mt-1">? Tentative</div>
+          <div class="text-xs text-gray-400">5.8%</div>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm text-center">
+          <div class="text-3xl font-bold text-gray-500">12</div>
+          <div class="text-xs text-gray-500 mt-1">– No Response</div>
+          <div class="text-xs text-gray-400">11.5%</div>
+        </div>
+      </div>
+
+      <!-- AI Alert -->
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div class="flex-1">
+            <div class="text-sm font-bold text-red-800 mb-1">⚠ Toro AI Alert — 3 ngày còn lại trước Session 1</div>
+            <div class="text-xs text-red-700 mb-3">20 người cần follow-up: 8 Declined + 12 No Response. Toro đề xuất:<br/>
+            1. Remind lại 12 người No Response<br/>
+            2. Gửi danh sách 8 người Declined cho HRBP để sắp xếp session khác</div>
+            <div class="flex gap-2">
+              <button onclick="triggerRemind()" class="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-red-700">Toro remind 12 người No Response</button>
+              <button onclick="downloadHRBP()" class="text-xs border border-red-300 text-red-700 px-3 py-1.5 rounded-lg font-medium hover:bg-red-100">Xuất 8 người Declined cho HRBP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions breakdown -->
+      <div class="grid grid-cols-2 gap-5">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h3 class="font-semibold text-gray-900 text-sm mb-4">RSVP theo session</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-gray-700">Session 1 · 25/03</span><span class="text-gray-400">29 người</span></div>
+              <div class="flex gap-1 h-3">
+                <div class="bg-green-500 rounded-l h-full" style="width:72%"></div>
+                <div class="bg-red-400 h-full" style="width:7%"></div>
+                <div class="bg-yellow-400 h-full" style="width:7%"></div>
+                <div class="bg-gray-200 rounded-r h-full" style="width:14%"></div>
+              </div>
+              <div class="flex gap-3 text-xs mt-1 text-gray-500"><span class="text-green-600">21✓</span><span class="text-red-500">2✗</span><span class="text-yellow-500">2?</span><span class="text-gray-400">4–</span></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-gray-700">Session 2 · 26/03</span><span class="text-gray-400">27 người</span></div>
+              <div class="flex gap-1 h-3">
+                <div class="bg-green-500 rounded-l h-full" style="width:67%"></div>
+                <div class="bg-red-400 h-full" style="width:11%"></div>
+                <div class="bg-yellow-400 h-full" style="width:7%"></div>
+                <div class="bg-gray-200 rounded-r h-full" style="width:15%"></div>
+              </div>
+              <div class="flex gap-3 text-xs mt-1 text-gray-500"><span class="text-green-600">18✓</span><span class="text-red-500">3✗</span><span class="text-yellow-500">2?</span><span class="text-gray-400">4–</span></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-gray-700">Session 3 · 27/03</span><span class="text-gray-400">22 người</span></div>
+              <div class="flex gap-1 h-3">
+                <div class="bg-green-500 rounded-l h-full" style="width:77%"></div>
+                <div class="bg-red-400 h-full" style="width:5%"></div>
+                <div class="bg-yellow-400 h-full" style="width:9%"></div>
+                <div class="bg-gray-200 rounded-r h-full" style="width:9%"></div>
+              </div>
+              <div class="flex gap-3 text-xs mt-1 text-gray-500"><span class="text-green-600">17✓</span><span class="text-red-500">1✗</span><span class="text-yellow-500">2?</span><span class="text-gray-400">2–</span></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-gray-700">Session 4 · 31/03</span><span class="text-gray-400">26 người</span></div>
+              <div class="flex gap-1 h-3">
+                <div class="bg-green-500 rounded-l h-full" style="width:85%"></div>
+                <div class="bg-red-400 h-full" style="width:8%"></div>
+                <div class="bg-gray-200 rounded-r h-full" style="width:7%"></div>
+              </div>
+              <div class="flex gap-3 text-xs mt-1 text-gray-500"><span class="text-green-600">22✓</span><span class="text-red-500">2✗</span><span class="text-gray-400">2–</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendee table -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-semibold text-gray-900 text-sm">Danh sách cần follow-up</h3>
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">20 người</span>
+          </div>
+          <div class="overflow-y-auto" style="max-height:280px">
+            <table class="w-full text-xs">
+              <thead class="bg-gray-50 sticky top-0"><tr><th class="px-4 py-2 text-left font-semibold text-gray-600">Tên</th><th class="px-4 py-2 text-left font-semibold text-gray-600">BU</th><th class="px-4 py-2 text-left font-semibold text-gray-600">Session</th><th class="px-4 py-2 text-left font-semibold text-gray-600">Status</th></tr></thead>
+              <tbody id="followup-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Generate follow-up list
+const followUpData = [
+  { name:'Lê Hùng', bu:'Design', session:2, status:'decline' },
+  { name:'Phạm Tuấn Anh', bu:'Data', session:2, status:'none' },
+  { name:'Ngô Thị Thu', bu:'BD', session:4, status:'none' },
+  { name:'Trần Minh Đức', bu:'Engineering', session:1, status:'none' },
+  { name:'Nguyễn Lan Anh', bu:'Product', session:3, status:'decline' },
+  { name:'Vũ Thanh Tùng', bu:'Marketing', session:2, status:'none' },
+  { name:'Đoàn Thị Mai', bu:'Finance', session:1, status:'decline' },
+  { name:'Lý Minh Khoa', bu:'Data', session:3, status:'none' },
+  { name:'Bùi Thị Hồng', bu:'HR', session:4, status:'none' },
+  { name:'Trương Quốc Huy', bu:'Engineering', session:2, status:'decline' },
+];
+const statusBadge = { decline:'<span class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">✗ Declined</span>', none:'<span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">– No response</span>' };
+const tbody = document.getElementById('followup-table');
+followUpData.forEach(p => {
+  tbody.innerHTML += `<tr class="border-b border-gray-50 hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">${p.name}</td><td class="px-4 py-2.5 text-gray-500">${p.bu}</td><td class="px-4 py-2.5 text-gray-500">Session ${p.session}</td><td class="px-4 py-2.5">${statusBadge[p.status]}</td></tr>`;
+});
+
+function simulateRefresh() {
+  const icon = document.getElementById('refresh-icon');
+  icon.classList.add('animate-spin');
+  setTimeout(() => {
+    icon.classList.remove('animate-spin');
+    showToast('✓ Đã sync RSVP từ Outlook Calendar. 1 người mới Accept!', 'success');
+    showZaloNotif('RSVP cập nhật: Vũ Minh Khoa đã Accept Session 3!');
+  }, 1500);
+}
+
+function triggerRemind() {
+  showToast('Toro đang soạn email remind cho 12 người No Response...', 'info');
+  setTimeout(() => showToast('✓ Remind đã gửi cho 12 người. Kiểm tra tab Email để duyệt.', 'success'), 2000);
+  setTimeout(() => showZaloNotif('Toro đã soạn 12 email remind, đang chờ duyệt tại Dashboard!'), 2500);
+}
+
+function downloadHRBP() {
+  showToast('✓ Đã tạo file Excel danh sách 8 người Declined cho HRBP!', 'success');
+  setTimeout(() => showZaloNotif('Toro đã gửi danh sách follow-up HRBP: 8 người Declined Strengths-based Dev.'), 800);
+}
+</script>
+</body>
+</html>

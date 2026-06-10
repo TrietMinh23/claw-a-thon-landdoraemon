@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Report — L&D Ops Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="_shared.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body { font-family:'Inter',sans-serif; background:#f8fafc; }
+.tab { cursor:pointer; padding:0.5rem 1rem; border-bottom:2px solid transparent; font-size:0.875rem; color:#64748b; }
+.tab.active { border-bottom-color:#16a34a; color:#16a34a; font-weight:600; }
+</style>
+</head>
+<body class="text-gray-800">
+<div class="flex h-screen overflow-hidden">
+  <aside class="w-56 bg-white border-r border-gray-100 flex flex-col shadow-sm flex-shrink-0">
+    <div class="p-4 border-b border-gray-100"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold text-sm">L</div><div><div class="font-bold text-sm">L&D Ops</div><div class="text-xs text-gray-400">Zalopay · Toro AI</div></div></div></div>
+    <nav class="flex-1 p-3 space-y-0.5 text-sm">
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">← Dashboard</a>
+      <a href="emails.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Duyệt Email</a>
+      <a href="workshop.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Workshop Detail</a>
+      <a href="rsvp.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">RSVP Tracker</a>
+      <a href="feedback.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-green-50 text-green-700 font-semibold">Feedback Report</a>
+      <a href="certificates.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Certificates</a>
+    </nav>
+    <div class="p-3 border-t border-gray-100"><div class="flex items-center gap-2 px-2 py-1.5"><div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold">A</div><div class="text-xs"><div class="font-medium">AnhNH19</div><div class="text-gray-400">L&D PIC</div></div></div></div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div><h1 class="text-lg font-semibold">Feedback Report</h1><p class="text-xs text-gray-400">Strengths-based Development · AI Generated · Qwen-2.5 Sentiment Analysis</p></div>
+      <div class="flex gap-2">
+        <button onclick="showToast('📄 Đang export PDF...', 'info'); setTimeout(()=>showToast('✓ Report.pdf đã tải về!','success'),2000)" class="border border-gray-200 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 font-medium flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export PDF
+        </button>
+        <button onclick="sendReport()" class="bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 font-medium flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Gửi Email Report
+        </button>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="bg-white border-b border-gray-100 px-6 flex gap-1">
+      <div class="tab active" onclick="showTab('post',this)">Post-workshop Feedback</div>
+      <div class="tab" onclick="showTab('pre',this)">Pre-workshop Survey</div>
+    </div>
+
+    <div class="p-6 space-y-5">
+
+      <!-- POST TAB -->
+      <div id="tab-post">
+        <!-- AI Summary -->
+        <div class="bg-gradient-to-r from-green-600 to-emerald-500 rounded-2xl p-5 text-white shadow-lg mb-5">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-lg">💡</div>
+            <div>
+              <div class="text-xs font-semibold opacity-75 mb-1">Toro AI Insight · Qwen-2.5 Sentiment Analysis</div>
+              <p class="text-sm leading-relaxed">Workshop nhận phản hồi <strong>rất tích cực</strong> với NPS +72. Học viên đặc biệt ấn tượng với cách <strong>facilitator kết nối strengths report vào thực tế công việc</strong>. Điểm cần cải thiện: thời lượng nên kéo thêm 30 phút. <strong>92% sẽ giới thiệu cho đồng nghiệp.</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-5">
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+            <div class="text-3xl font-bold text-green-600">4.6</div>
+            <div class="text-xs text-gray-500 mt-1">Điểm trung bình</div>
+            <div class="flex justify-center mt-1">★★★★½</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+            <div class="text-3xl font-bold text-blue-600">92%</div>
+            <div class="text-xs text-gray-500 mt-1">Tỉ lệ hài lòng</div>
+            <div class="text-xs text-gray-400">score ≥ 4/5</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+            <div class="text-3xl font-bold text-gray-800">56</div>
+            <div class="text-xs text-gray-500 mt-1">Phản hồi / 104</div>
+            <div class="text-xs text-gray-400">53.8% response rate</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+            <div class="text-3xl font-bold text-purple-600">+72</div>
+            <div class="text-xs text-gray-500 mt-1">NPS Score</div>
+            <div class="text-xs text-green-600 font-semibold">Excellent ↑</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-2 gap-5 mb-5">
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">Đánh giá theo tiêu chí</h3>
+            <div style="height:220px"><canvas id="radarChart"></canvas></div>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">Phân bố điểm tổng thể</h3>
+            <div style="height:220px"><canvas id="barChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="grid grid-cols-2 gap-5">
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-lg">✅</div>
+              <h3 class="font-semibold text-gray-900 text-sm">Điểm mạnh</h3>
+            </div>
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Facilitator kết nối tốt strengths report vào công việc thực tế</p><div class="flex items-center gap-1 mt-1"><div class="bg-green-200 h-1.5 rounded-full" style="width:100px"></div><span class="text-xs text-gray-400">28 lần</span></div></div></div>
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Hoạt động nhóm thú vị, tạo không gian chia sẻ tốt</p><div class="flex items-center gap-1 mt-1"><div class="bg-green-200 h-1.5 rounded-full" style="width:79px"></div><span class="text-xs text-gray-400">22 lần</span></div></div></div>
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Nội dung thực tiễn, có thể áp dụng ngay</p><div class="flex items-center gap-1 mt-1"><div class="bg-green-200 h-1.5 rounded-full" style="width:68px"></div><span class="text-xs text-gray-400">19 lần</span></div></div></div>
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Không khí workshop thoải mái, cởi mở</p><div class="flex items-center gap-1 mt-1"><div class="bg-green-200 h-1.5 rounded-full" style="width:54px"></div><span class="text-xs text-gray-400">15 lần</span></div></div></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-lg">⚠️</div>
+              <h3 class="font-semibold text-gray-900 text-sm">Cần cải thiện</h3>
+            </div>
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Thời lượng ngắn, cần thêm 30–45 phút thực hành nhóm</p><div class="flex items-center gap-1 mt-1"><div class="bg-orange-200 h-1.5 rounded-full" style="width:64px"></div><span class="text-xs text-gray-400">18 lần</span></div></div></div>
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Muốn có thêm case study thực tế từ Zalopay</p><div class="flex items-center gap-1 mt-1"><div class="bg-orange-200 h-1.5 rounded-full" style="width:43px"></div><span class="text-xs text-gray-400">12 lần</span></div></div></div>
+              <div class="flex items-start gap-2.5"><div class="w-1.5 h-1.5 rounded-full bg-orange-300 mt-1.5 flex-shrink-0"></div><div class="flex-1"><p class="text-xs text-gray-700">Handout chưa đủ bài tập để làm tiếp sau workshop</p><div class="flex items-center gap-1 mt-1"><div class="bg-orange-200 h-1.5 rounded-full" style="width:29px"></div><span class="text-xs text-gray-400">8 lần</span></div></div></div>
+            </div>
+            <div class="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <div class="text-xs font-semibold text-orange-800">Toro đề xuất action:</div>
+              <div class="text-xs text-orange-700 mt-0.5">Kéo dài workshop lên 3.5h + thêm 1 bài tập take-home trong handout cho lần sau</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRE TAB -->
+      <div id="tab-pre" class="hidden space-y-5">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-5 text-white shadow-lg">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-lg">📊</div>
+            <div>
+              <div class="text-xs font-semibold opacity-75 mb-1">Toro AI · Pre-workshop Analysis</div>
+              <p class="text-sm leading-relaxed">Học viên chủ yếu muốn <strong>áp dụng strengths vào công việc thực tế</strong> (28%) và <strong>hiểu rõ bản thân hơn</strong> (22%). Điểm tự tin thấp nhất: <strong>chia sẻ strengths với người khác</strong>. Đề xuất: tập trung vào peer sharing activities trong workshop.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-5">
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-semibold text-gray-900 text-sm mb-3">Kỳ vọng workshop (56 responses)</h3>
+            <div class="space-y-2">
+              <div><div class="flex justify-between text-xs mb-1"><span>Cách áp dụng strengths vào công việc</span><span class="text-gray-500">28%</span></div><div class="bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-blue-500 h-3 rounded-full" style="width:100%"></div></div></div>
+              <div><div class="flex justify-between text-xs mb-1"><span>Hiểu rõ hơn bản thân qua report</span><span class="text-gray-500">22%</span></div><div class="bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-blue-400 h-3 rounded-full" style="width:78%"></div></div></div>
+              <div><div class="flex justify-between text-xs mb-1"><span>Học hỏi từ đồng nghiệp</span><span class="text-gray-500">15%</span></div><div class="bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-blue-300 h-3 rounded-full" style="width:53%"></div></div></div>
+              <div><div class="flex justify-between text-xs mb-1"><span>Cân bằng điểm mạnh & yếu</span><span class="text-gray-500">15%</span></div><div class="bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-blue-300 h-3 rounded-full" style="width:53%"></div></div></div>
+              <div><div class="flex justify-between text-xs mb-1"><span>Xây dựng action plan</span><span class="text-gray-500">12%</span></div><div class="bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-blue-200 h-3 rounded-full" style="width:43%"></div></div></div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-semibold text-gray-900 text-sm mb-3">Mức độ tự tin về Strengths</h3>
+            <div style="height:180px"><canvas id="preChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function showTab(name, el) {
+  ['post','pre'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+  document.getElementById('tab-'+name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function sendReport() {
+  showToast('Toro đang soạn email report...', 'info');
+  setTimeout(() => {
+    showToast('✓ Feedback report đã gửi cho L&D Manager + HRBP!', 'success');
+    showZalaNotif && showZalaNotif('Report feedback Strengths-based Dev đã gửi!');
+  }, 1500);
+}
+
+// Radar Chart
+new Chart(document.getElementById('radarChart'), {
+  type:'radar',
+  data:{
+    labels:['Trải nghiệm tổng thể','Nội dung & tài liệu','Truyền đạt speaker','Hoạt động','Thời lượng','Công tác tổ chức'],
+    datasets:[{label:'Điểm TB',data:[4.7,4.5,4.8,4.4,4.1,4.9],fill:true,backgroundColor:'rgba(34,197,94,0.15)',borderColor:'rgb(34,197,94)',pointBackgroundColor:'rgb(34,197,94)',pointRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:false,min:3,max:5,ticks:{stepSize:0.5,font:{size:9}},pointLabels:{font:{size:9}}}},plugins:{legend:{display:false}}}
+});
+
+// Bar Chart
+new Chart(document.getElementById('barChart'), {
+  type:'bar',
+  data:{
+    labels:['5★ Rất hài lòng','4★ Hài lòng','3★ Trung lập','2★ Không HL','1★ Rất không HL'],
+    datasets:[{data:[34,18,3,1,0],backgroundColor:['#22c55e','#4ade80','#fbbf24','#f87171','#ef4444'],borderRadius:6}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:40,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}
+});
+
+// Pre-workshop chart
+new Chart(document.getElementById('preChart'), {
+  type:'bar',
+  data:{
+    labels:['Tin vào phát triển strengths','Hiểu điểm mạnh bản thân','Tận dụng có chủ đích','Hiểu sâu hơn','Chia sẻ với người khác'],
+    datasets:[{label:'% đồng ý (4-5)',data:[72,81,68,56,44],backgroundColor:'rgba(59,130,246,0.7)',borderRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:100,ticks:{font:{size:9},callback:v=>v+'%'}},y:{ticks:{font:{size:8}}}}}
+});
+</script>
+</body>
+</html>
