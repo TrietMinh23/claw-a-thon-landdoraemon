@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Scratch / generated artifacts
+artifact/
+mockup/
+
+# Planning docs (internal only)
+docs/superpowers/

@@ -1,0 +1,76 @@
+# backend/mock_data.py
+
+WORKSHOPS = [
+    {
+        "id": "wb-001",
+        "name": "Strengths-based Development Program",
+        "short": "Strengths-based Dev",
+        "abbr": "SB",
+        "color": "purple",
+        "status": "pre-workshop",
+        "sessions": 4,
+        "total": 104,
+        "rsvp": {"accept": 78, "decline": 8, "tentative": 6, "none": 12},
+        "dates": "24/03 – 31/03/2026",
+        "pendingEmails": 7,
+        "progress": 65,
+        "trainer": "Toro / External Facilitator",
+        "room": "Đà Nẵng – Hà Nội Room",
+    },
+    {
+        "id": "wb-002",
+        "name": "Leadership Mindset for Mid-level",
+        "short": "Leadership Mindset",
+        "abbr": "LM",
+        "color": "blue",
+        "status": "pre-workshop",
+        "sessions": 2,
+        "total": 48,
+        "rsvp": {"accept": 31, "decline": 0, "tentative": 5, "none": 12},
+        "dates": "18/06/2026",
+        "pendingEmails": 0,
+        "progress": 30,
+        "trainer": "Internal L&D",
+        "room": "Sài Gòn – Đà Nẵng Room",
+    },
+    {
+        "id": "wb-003",
+        "name": "Onboarding Orientation Q3",
+        "short": "Onboarding Q3",
+        "abbr": "OB",
+        "color": "green",
+        "status": "planning",
+        "sessions": 1,
+        "total": 22,
+        "rsvp": {"accept": 0, "decline": 0, "tentative": 0, "none": 22},
+        "dates": "05/07/2026",
+        "pendingEmails": 0,
+        "progress": 5,
+        "trainer": "HRBP",
+        "room": "TBD",
+    },
+]
+
+EMAIL_DRAFTS = [
+    {"id": "em-001", "type": "invite", "label": "Email mời tham dự — Session 1", "session": 1, "date": "25/03/2026", "count": 29, "status": "pending", "time": "08:42", "preview": "Starter thân mến, Toro trân trọng mời Minh đến tham gia Strengths-based Development Workshop..."},
+    {"id": "em-002", "type": "invite", "label": "Email mời tham dự — Session 2", "session": 2, "date": "26/03/2026", "count": 27, "status": "pending", "time": "08:43", "preview": "Starter thân mến, Toro trân trọng mời Lan đến tham gia Strengths-based Development Workshop..."},
+    {"id": "em-003", "type": "invite", "label": "Email mời tham dự — Session 3", "session": 3, "date": "27/03/2026", "count": 22, "status": "pending", "time": "08:44", "preview": "Starter thân mến, Toro trân trọng mời Hùng đến tham gia Strengths-based Development Workshop..."},
+    {"id": "em-004", "type": "invite", "label": "Email mời tham dự — Session 4", "session": 4, "date": "31/03/2026", "count": 26, "status": "pending", "time": "08:45", "preview": "Starter thân mến, Toro trân trọng mời Tuấn đến tham gia Strengths-based Development Workshop..."},
+    {"id": "em-005", "type": "setup", "label": "Setup phòng — AF & IT", "session": None, "date": "Tất cả sessions", "count": 1, "status": "pending", "time": "08:46", "preview": "Dear AF và IT team, Team Zalopay có tổ chức workshop theo lịch dưới đây..."},
+    {"id": "em-006", "type": "remind", "label": "Remind 12h — Session 1", "session": 1, "date": "Gửi 24/03 chiều", "count": 29, "status": "pending", "time": "08:47", "preview": "Starter ơi, Buổi sáng ngày mai (25/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop..."},
+    {"id": "em-007", "type": "remind", "label": "Remind 12h — Session 2", "session": 2, "date": "Gửi 25/03 chiều", "count": 27, "status": "pending", "time": "08:48", "preview": "Starter ơi, Buổi sáng ngày mai (26/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop..."},
+]
+
+ATTENDEES = [
+    {"name": "Nguyễn Văn Minh", "email": "minhNV@zalopay.vn", "bu": "Engineering", "session": 1, "rsvp": "accept"},
+    {"name": "Trần Thị Lan", "email": "lanTT@zalopay.vn", "bu": "Product", "session": 1, "rsvp": "accept"},
+    {"name": "Lê Hùng", "email": "hungL@zalopay.vn", "bu": "Design", "session": 2, "rsvp": "decline"},
+    {"name": "Phạm Tuấn Anh", "email": "anhPT@zalopay.vn", "bu": "Data", "session": 2, "rsvp": "none"},
+    {"name": "Đỗ Thị Hoa", "email": "hoaDT@zalopay.vn", "bu": "Engineering", "session": 3, "rsvp": "accept"},
+    {"name": "Vũ Minh Khoa", "email": "khoaVM@zalopay.vn", "bu": "Marketing", "session": 3, "rsvp": "tentative"},
+    {"name": "Ngô Thị Thu", "email": "thuNT@zalopay.vn", "bu": "BD", "session": 4, "rsvp": "none"},
+    {"name": "Bùi Quang Huy", "email": "huyBQ@zalopay.vn", "bu": "Finance", "session": 4, "rsvp": "accept"},
+]
+
+# In-memory approved emails — resets on server restart (acceptable for POC)
+approved_emails: set[str] = set()
