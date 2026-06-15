@@ -47,13 +47,12 @@ def _save_cache(cache: msal.SerializableTokenCache) -> None:
             raise TokenCacheError(f"Failed to save token cache: {e}")
 
 
-def _build_app(cache: msal.SerializableTokenCache) -> msal.ConfidentialClientApplication:
-    if not CLIENT_ID or not TENANT_ID or not CLIENT_SECRET:
-        raise EnvironmentError("CLIENT_ID, TENANT_ID, and CLIENT_SECRET must be set in .env")
-    return msal.ConfidentialClientApplication(
+def _build_app(cache: msal.SerializableTokenCache) -> msal.PublicClientApplication:
+    if not CLIENT_ID or not TENANT_ID:
+        raise EnvironmentError("CLIENT_ID and TENANT_ID must be set in .env")
+    return msal.PublicClientApplication(
         CLIENT_ID,
         authority=AUTHORITY,
-        client_credential=CLIENT_SECRET,
         token_cache=cache,
     )
 
