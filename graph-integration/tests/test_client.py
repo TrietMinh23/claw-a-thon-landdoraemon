@@ -144,3 +144,25 @@ class TestGetEventResponses:
         mock_graph.me.events.by_event_id.return_value.get = AsyncMock(return_value=fake_event)
         result = await client.get_event_responses("event-id-000")
         assert result == {"accepted": [], "declined": [], "tentativelyAccepted": [], "none": []}
+
+
+class TestReadOneDriveFile:
+    async def test_returns_bytes_content(self, client, mock_graph):
+        fake_bytes = b"file content here"
+        mock_graph.me.drive.items.by_drive_item_id.return_value.content.get = AsyncMock(
+            return_value=fake_bytes
+        )
+        result = await client.read_onedrive_file("item-id-abc")
+        assert result == fake_bytes
+        mock_graph.me.drive.items.by_drive_item_id.assert_called_once_with("item-id-abc")
+
+
+class TestReadSharePointFile:
+    async def test_returns_bytes_content(self, client, mock_graph):
+        fake_bytes = b"sharepoint file"
+        mock_graph.sites.by_site_id.return_value.drive.items.by_drive_item_id.return_value.content.get = AsyncMock(
+            return_value=fake_bytes
+        )
+        result = await client.read_sharepoint_file(site_id="site-123", item_id="item-456")
+        assert result == fake_bytes
+        mock_graph.sites.by_site_id.assert_called_once_with("site-123")

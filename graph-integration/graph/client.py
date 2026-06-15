@@ -129,6 +129,28 @@ class GraphClient:
                 message=str(getattr(e, "error", None) or e),
             )
 
+    async def read_onedrive_file(self, item_id: str) -> bytes:
+        try:
+            return await self._graph.me.drive.items.by_drive_item_id(item_id).content.get()
+        except APIError as e:
+            raise GraphAPIError(
+                status_code=e.response_status_code,
+                message=str(getattr(e, "error", None) or e),
+            )
+
+    async def read_sharepoint_file(self, site_id: str, item_id: str) -> bytes:
+        try:
+            return await (
+                self._graph.sites.by_site_id(site_id)
+                .drive.items.by_drive_item_id(item_id)
+                .content.get()
+            )
+        except APIError as e:
+            raise GraphAPIError(
+                status_code=e.response_status_code,
+                message=str(getattr(e, "error", None) or e),
+            )
+
     async def get_event_responses(self, event_id: str) -> dict:
         try:
             event = await self._graph.me.events.by_event_id(event_id).get()
