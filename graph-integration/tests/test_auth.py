@@ -48,3 +48,48 @@ class TestSaveCache:
             from graph.auth import _save_cache
             _save_cache(mock_cache)
             mock_file.assert_not_called()
+
+
+import graph.auth as auth_module
+from graph.auth import get_access_token
+from graph.exceptions import AuthError
+
+
+class TestGetAccessToken:
+    def _mock_app(self, accounts=None, silent_result=None):
+        app = MagicMock()
+        app.get_accounts.return_value = accounts or []
+        app.acquire_token_silent.return_value = silent_result
+        return app
+
+    def test_returns_token_from_silent_when_account_in_cache(self):
+        app = self._mock_app(
+            accounts=[{"username": "user@co.com"}],
+            silent_result={"access_token": "tok-silent"},
+        )
+        with patch.object(auth_module, "_load_cache", return_value=MagicMock()), \
+             patch.object(auth_module, "_build_app", return_value=app), \
+             patch.object(auth_module, "_save_cache"):
+            assert get_access_token() == "tok-silent"
+            app.acquire_token_silent.assert_called_once()
+
+    def test_opens_browser_when_no_cached_account(self):
+        app = self._mock_app(accounts=[])
+        app.acquire_token_by_authorization_code.return_value = {"access_token": "tok-browser"}
+        with patch.object(auth_module, "_load_cache", return_value=MagicMock()), \
+             patch.object(auth_module, "_build_app", return_value=app), \
+             patch.object(auth_module, "_save_cache"), \
+             patch.object(auth_module, "_get_auth_code_via_browser", return_value="code-xyz"):
+            assert get_access_token() == "tok-browser"
+            app.acquire_token_by_authorization_code.assert_called_once()
+
+    def test_raises_auth_error_when_msal_returns_error(self):
+        app = self._mock_app(
+            accounts=[{"username": "user@co.com"}],
+            silent_result={"error": "invalid_grant", "error_description": "Token expired"},
+        )
+        with patch.object(auth_module, "_load_cache", return_value=MagicMock()), \
+             patch.object(auth_module, "_build_app", return_value=app), \
+             patch.object(auth_module, "_save_cache"):
+            with pytest.raises(AuthError, match="Token expired"):
+                get_access_token()

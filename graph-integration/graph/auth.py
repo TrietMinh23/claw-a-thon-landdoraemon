@@ -46,3 +46,61 @@ def _save_cache(cache: msal.SerializableTokenCache) -> None:
     if cache.has_state_changed:
         with open(TOKEN_CACHE_PATH, "w") as f:
             f.write(cache.serialize())
+
+
+def _build_app(cache: msal.SerializableTokenCache) -> msal.ConfidentialClientApplication:
+    return msal.ConfidentialClientApplication(
+        CLIENT_ID,
+        authority=AUTHORITY,
+        client_credential=CLIENT_SECRET,
+        token_cache=cache,
+    )
+
+
+def _get_auth_code_via_browser(app: msal.ConfidentialClientApplication) -> str:
+    auth_url = app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    code_holder: dict = {}
+
+    class _CallbackHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            params = parse_qs(urlparse(self.path).query)
+            if "code" in params:
+                code_holder["code"] = params["code"][0]
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"<h1>Login successful. You can close this window.</h1>")
+
+        def log_message(self, *args):
+            pass  # suppress server logs
+
+    server = HTTPServer(("localhost", 8000), _CallbackHandler)
+    webbrowser.open(auth_url)
+    server.handle_request()  # blocks until one callback received
+
+    if "code" not in code_holder:
+        raise AuthError("No authorization code received from callback")
+    return code_holder["code"]
+
+
+def get_access_token() -> str:
+    cache = _load_cache()
+    app = _build_app(cache)
+    result = None
+
+    accounts = app.get_accounts()
+    if accounts:
+        result = app.acquire_token_silent(SCOPES, account=accounts[0])
+
+    if not result:
+        code = _get_auth_code_via_browser(app)
+        result = app.acquire_token_by_authorization_code(
+            code,
+            scopes=SCOPES,
+            redirect_uri=REDIRECT_URI,
+        )
+
+    if "error" in result:
+        raise AuthError(result.get("error_description", result["error"]))
+
+    _save_cache(cache)
+    return result["access_token"]
