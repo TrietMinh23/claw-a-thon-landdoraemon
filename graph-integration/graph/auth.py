@@ -23,7 +23,6 @@ SCOPES = [
     "User.Read",
     "Files.Read.All",
     "Sites.Read.All",
-    "offline_access",
 ]
 
 
