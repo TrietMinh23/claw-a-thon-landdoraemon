@@ -83,11 +83,16 @@ export interface EmailDraft {
   preview: string
 }
 
+export interface ImageEntry {
+  dataUrl: string
+  fileId: string
+}
+
 export interface ComposeGenerateRequest {
   email_type: string
   workshop_context: string
   extra_instructions: string
-  image_data_urls: string[]
+  file_ids: string[]
 }
 
 export interface ChatEditRequest {

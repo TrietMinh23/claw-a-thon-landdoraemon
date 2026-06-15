@@ -1,18 +1,21 @@
 // frontend/src/components/compose/ImageUpload.tsx
 import { useRef, useState } from 'react'
-import { Button, Typography, Flex } from 'antd'
+import { Button, Typography, Flex, Spin } from 'antd'
 import { PictureOutlined, CloseOutlined } from '@ant-design/icons'
+import type { ImageEntry } from '../../types'
+import { uploadImage } from '../../api'
 
 interface Props {
-  images: string[]
-  onChange: (images: string[]) => void
+  images: ImageEntry[]
+  onChange: (images: ImageEntry[]) => void
 }
 
 export default function ImageUpload({ images, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  const compressImage = (file: File): Promise<string> =>
+  const compressToDataUrl = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = e => {
@@ -37,18 +40,39 @@ export default function ImageUpload({ images, onChange }: Props) {
       reader.readAsDataURL(file)
     })
 
-  const readFiles = (files: FileList | null) => {
+  const dataUrlToFile = (dataUrl: string, name: string): File => {
+    const [header, data] = dataUrl.split(',')
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+    const bytes = atob(data)
+    const arr = new Uint8Array(bytes.length)
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
+    return new File([arr], name, { type: mime })
+  }
+
+  const processFiles = async (files: FileList | null) => {
     if (!files) return
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return
-      compressImage(file).then(dataUrl => onChange([...images, dataUrl]))
-    })
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    if (!imageFiles.length) return
+    setUploading(true)
+    try {
+      const entries = await Promise.all(
+        imageFiles.map(async (file) => {
+          const dataUrl = await compressToDataUrl(file)
+          const compressed = dataUrlToFile(dataUrl, file.name)
+          const { file_id } = await uploadImage(compressed)
+          return { dataUrl, fileId: file_id }
+        })
+      )
+      onChange([...images, ...entries])
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragging(false)
-    readFiles(e.dataTransfer.files)
+    processFiles(e.dataTransfer.files)
   }
 
   const remove = (idx: number) => onChange(images.filter((_, i) => i !== idx))
@@ -59,20 +83,24 @@ export default function ImageUpload({ images, onChange }: Props) {
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !uploading && inputRef.current?.click()}
         style={{
           border: `2px dashed ${dragging ? '#16a34a' : '#d1d5db'}`,
           borderRadius: 8,
           padding: '16px',
           textAlign: 'center',
-          cursor: 'pointer',
+          cursor: uploading ? 'not-allowed' : 'pointer',
           background: dragging ? '#f0fdf4' : '#fafafa',
           transition: 'all 0.2s',
         }}
       >
-        <PictureOutlined style={{ fontSize: 24, color: '#9ca3af' }} />
+        {uploading ? (
+          <Spin size="small" />
+        ) : (
+          <PictureOutlined style={{ fontSize: 24, color: '#9ca3af' }} />
+        )}
         <Typography.Text type="secondary" style={{ display: 'block', fontSize: 13, marginTop: 4 }}>
-          Kéo thả ảnh hoặc click để chọn
+          {uploading ? 'Đang tải ảnh...' : 'Kéo thả ảnh hoặc click để chọn'}
         </Typography.Text>
         <input
           ref={inputRef}
@@ -80,15 +108,15 @@ export default function ImageUpload({ images, onChange }: Props) {
           accept="image/*"
           multiple
           style={{ display: 'none' }}
-          onChange={e => readFiles(e.target.files)}
+          onChange={e => { processFiles(e.target.files); e.target.value = '' }}
         />
       </div>
       {images.length > 0 && (
         <Flex gap={8} wrap="wrap" style={{ marginTop: 10 }}>
-          {images.map((src, i) => (
+          {images.map((entry, i) => (
             <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
               <img
-                src={src}
+                src={entry.dataUrl}
                 alt=""
                 style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
               />

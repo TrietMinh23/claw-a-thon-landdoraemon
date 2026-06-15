@@ -1,7 +1,10 @@
 import json
 import os
 import anthropic
+from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI, UploadFile, File, HTTPException
+
+load_dotenv(find_dotenv())
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel

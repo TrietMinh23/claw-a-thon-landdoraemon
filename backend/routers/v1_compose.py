@@ -1,7 +1,7 @@
 # backend/routers/v1_compose.py
 import json
 import os
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import anthropic
@@ -10,7 +10,9 @@ from parser import parse_participants
 
 router = APIRouter(prefix="/api/v1/compose")
 
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY") or None)
+
+_FILES_BETA = ["files-api-2025-04-14"]
 
 
 def _strip_base64_prefix(data_url: str) -> tuple[str, str]:
@@ -23,11 +25,23 @@ def _strip_base64_prefix(data_url: str) -> tuple[str, str]:
     return media_type, data
 
 
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload image to Anthropic Files API. Returns file_id — no local storage."""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "File phải là ảnh")
+    data = await file.read()
+    response = client.beta.files.upload(
+        file=(file.filename or "image.jpg", data, file.content_type),
+    )
+    return {"file_id": response.id}
+
+
 class GenerateRequest(BaseModel):
     email_type: str = "invite"
     workshop_context: str = ""
     extra_instructions: str = ""
-    image_data_urls: list[str] = []
+    file_ids: list[str] = []
 
 
 @router.post("/generate")
@@ -39,21 +53,27 @@ async def generate_email(req: GenerateRequest):
     )
 
     content: list[dict] = [{"type": "text", "text": "Soạn email theo yêu cầu trên."}]
-    for img_url in req.image_data_urls:
-        media_type, data = _strip_base64_prefix(img_url)
+    for file_id in req.file_ids:
         content.append({
             "type": "image",
-            "source": {"type": "base64", "media_type": media_type, "data": data},
+            "source": {"type": "file", "file_id": file_id},
         })
 
+    msg_kwargs = dict(
+        model="claude-opus-4-8",
+        max_tokens=4096,
+        thinking={"type": "adaptive"},
+        system=system_prompt,
+        messages=[{"role": "user", "content": content}],
+    )
+
     async def stream():
-        with client.messages.stream(
-            model="claude-opus-4-8",
-            max_tokens=2048,
-            thinking={"type": "adaptive"},
-            system=system_prompt,
-            messages=[{"role": "user", "content": content}],
-        ) as s:
+        stream_ctx = (
+            client.beta.messages.stream(**msg_kwargs, betas=_FILES_BETA)
+            if req.file_ids
+            else client.messages.stream(**msg_kwargs)
+        )
+        with stream_ctx as s:
             for text in s.text_stream:
                 yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
@@ -102,7 +122,7 @@ Chỉ trả về HTML, không giải thích."""
     async def stream():
         with client.messages.stream(
             model="claude-opus-4-8",
-            max_tokens=2048,
+            max_tokens=4096,
             thinking={"type": "adaptive"},
             system=system_prompt,
             messages=messages,
@@ -120,7 +140,6 @@ Chỉ trả về HTML, không giải thích."""
 
 @router.post("/send")
 async def send_email():
-    # POC stub — no real email sending
     return {"status": "queued", "message": "Email đã được thêm vào hàng chờ duyệt."}
 
 

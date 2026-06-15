@@ -9,7 +9,7 @@ import ChatPanel from '../shared/ChatPanel'
 import EmailPreview from '../shared/EmailPreview'
 import { streamGenerateV1, streamChatEdit } from '../../api'
 import { useEmailContext } from '../../contexts/EmailContext'
-import type { Participant, Workshop, ChatMessage, EmailDraft } from '../../types'
+import type { Participant, Workshop, ChatMessage, EmailDraft, ImageEntry } from '../../types'
 
 type GenState = 'idle' | 'generating' | 'ready' | 'editing'
 
@@ -47,7 +47,7 @@ export default function ComposePage() {
 
   const [emailType, setEmailType] = useState('invite')
   const [extraInstructions, setExtraInstructions] = useState('')
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<ImageEntry[]>([])
 
   const [genState, setGenState] = useState<GenState>('idle')
   const [emailHtml, setEmailHtml] = useState('')

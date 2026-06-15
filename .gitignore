@@ -15,3 +15,5 @@ mockup/
 
 # Planning docs (internal only)
 docs/superpowers/
+
+.env

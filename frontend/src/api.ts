@@ -96,6 +96,14 @@ export async function approveEmail(id: string): Promise<void> {
 }
 
 // --- v1 compose ---
+export async function uploadImage(file: File): Promise<{ file_id: string }> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch('/api/v1/compose/upload-image', { method: 'POST', body: form })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
 export async function streamGenerateV1(
   req: ComposeGenerateRequest,
   onChunk: (text: string) => void,
