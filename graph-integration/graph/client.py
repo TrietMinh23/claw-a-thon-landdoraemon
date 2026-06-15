@@ -16,10 +16,6 @@ from msgraph.generated.models.location import Location
 from msgraph.generated.models.message import Message
 from msgraph.generated.models.recipient import Recipient
 from msgraph.generated.users.item.send_mail.send_mail_post_request_body import SendMailPostRequestBody
-from msgraph.generated.users.item.mail_folders.item.messages.messages_request_builder import (
-    MessagesRequestBuilder,
-)
-from kiota_abstractions.base_request_configuration import RequestConfiguration
 
 from graph.auth import SCOPES, get_access_token
 from graph.exceptions import GraphAPIError
@@ -80,22 +76,14 @@ class GraphClient:
         self,
         folder: str = "inbox",
         top: int = 25,
-        filter: str = None,
     ) -> list:
-        query_params = MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters(
-            top=top,
-            filter=filter,
-        )
-        config = RequestConfiguration(query_parameters=query_params)
         try:
-            result = await self._graph.me.mail_folders.by_mail_folder_id(folder).messages.get(
-                request_configuration=config
-            )
-            return result.value or []
+            result = await self._graph.me.mail_folders.by_mail_folder_id(folder).messages.get()
+            return (result.value or [])[:top]
         except APIError as e:
             raise GraphAPIError(
                 status_code=e.response_status_code,
-                message=str(e.error.message if getattr(e, "error", None) else e),
+                message=str(getattr(e, "error", None) or e),
             )
 
     async def create_event(
@@ -107,6 +95,8 @@ class GraphClient:
         body: str = None,
         location: str = None,
     ):
+        if start.tzinfo is None or end.tzinfo is None:
+            raise ValueError("start and end datetimes must be timezone-aware")
         event = Event(
             subject=subject,
             start=DateTimeTimeZone(date_time=start.isoformat(), time_zone="UTC"),
@@ -166,7 +156,7 @@ class GraphClient:
             "none": [],
         }
         for attendee in event.attendees or []:
-            status = attendee.status.response.value if attendee.status else "none"
+            status = (attendee.status.response.value if attendee.status and attendee.status.response else "none")
             email = attendee.email_address.address if attendee.email_address else ""
             bucket = status if status in result else "none"
             result[bucket].append(email)

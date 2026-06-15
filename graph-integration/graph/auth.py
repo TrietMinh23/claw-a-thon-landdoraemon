@@ -44,11 +44,16 @@ def _load_cache() -> msal.SerializableTokenCache:
 
 def _save_cache(cache: msal.SerializableTokenCache) -> None:
     if cache.has_state_changed:
-        with open(TOKEN_CACHE_PATH, "w") as f:
-            f.write(cache.serialize())
+        try:
+            with open(TOKEN_CACHE_PATH, "w") as f:
+                f.write(cache.serialize())
+        except OSError as e:
+            raise TokenCacheError(f"Failed to save token cache: {e}")
 
 
 def _build_app(cache: msal.SerializableTokenCache) -> msal.ConfidentialClientApplication:
+    if not CLIENT_ID or not TENANT_ID or not CLIENT_SECRET:
+        raise EnvironmentError("CLIENT_ID, TENANT_ID, and CLIENT_SECRET must be set in .env")
     return msal.ConfidentialClientApplication(
         CLIENT_ID,
         authority=AUTHORITY,
