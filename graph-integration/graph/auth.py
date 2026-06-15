@@ -1,7 +1,4 @@
 import os
-import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import parse_qs, urlparse
 
 import msal
 from dotenv import load_dotenv
@@ -16,7 +13,6 @@ except Exception:
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 TENANT_ID = os.getenv("TENANT_ID")
-REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/callback")
 TOKEN_CACHE_PATH = os.getenv("TOKEN_CACHE_PATH", "token_cache.json")
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 
@@ -62,31 +58,6 @@ def _build_app(cache: msal.SerializableTokenCache) -> msal.ConfidentialClientApp
     )
 
 
-def _get_auth_code_via_browser(app: msal.ConfidentialClientApplication) -> str:
-    auth_url = app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
-    code_holder: dict = {}
-
-    class _CallbackHandler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            params = parse_qs(urlparse(self.path).query)
-            if "code" in params:
-                code_holder["code"] = params["code"][0]
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b"<h1>Login successful. You can close this window.</h1>")
-
-        def log_message(self, *args):
-            pass  # suppress server logs
-
-    server = HTTPServer(("localhost", 8000), _CallbackHandler)
-    webbrowser.open(auth_url)
-    server.handle_request()  # blocks until one callback received
-
-    if "code" not in code_holder:
-        raise AuthError("No authorization code received from callback")
-    return code_holder["code"]
-
-
 def get_access_token() -> str:
     cache = _load_cache()
     app = _build_app(cache)
@@ -97,12 +68,11 @@ def get_access_token() -> str:
         result = app.acquire_token_silent(SCOPES, account=accounts[0])
 
     if not result:
-        code = _get_auth_code_via_browser(app)
-        result = app.acquire_token_by_authorization_code(
-            code,
-            scopes=SCOPES,
-            redirect_uri=REDIRECT_URI,
-        )
+        flow = app.initiate_device_flow(scopes=SCOPES)
+        if "user_code" not in flow:
+            raise AuthError(f"Device flow failed: {flow.get('error_description', flow)}")
+        print(flow["message"])  # "Go to https://microsoft.com/devicelogin and enter code: XXXXX"
+        result = app.acquire_token_by_device_flow(flow)  # blocks until user authenticates
 
     if "error" in result:
         raise AuthError(result.get("error_description", result["error"]))

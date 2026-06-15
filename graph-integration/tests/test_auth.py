@@ -73,15 +73,32 @@ class TestGetAccessToken:
             assert get_access_token() == "tok-silent"
             app.acquire_token_silent.assert_called_once()
 
-    def test_opens_browser_when_no_cached_account(self):
+    def test_uses_device_flow_when_no_cached_account(self):
         app = self._mock_app(accounts=[])
-        app.acquire_token_by_authorization_code.return_value = {"access_token": "tok-browser"}
+        app.initiate_device_flow.return_value = {
+            "user_code": "ABC123",
+            "message": "Go to https://microsoft.com/devicelogin and enter code ABC123",
+        }
+        app.acquire_token_by_device_flow.return_value = {"access_token": "tok-device"}
         with patch.object(auth_module, "_load_cache", return_value=MagicMock()), \
              patch.object(auth_module, "_build_app", return_value=app), \
              patch.object(auth_module, "_save_cache"), \
-             patch.object(auth_module, "_get_auth_code_via_browser", return_value="code-xyz"):
-            assert get_access_token() == "tok-browser"
-            app.acquire_token_by_authorization_code.assert_called_once()
+             patch("builtins.print"):
+            assert get_access_token() == "tok-device"
+            app.initiate_device_flow.assert_called_once()
+            app.acquire_token_by_device_flow.assert_called_once()
+
+    def test_raises_auth_error_when_device_flow_fails_to_initiate(self):
+        app = self._mock_app(accounts=[])
+        app.initiate_device_flow.return_value = {
+            "error": "unauthorized_client",
+            "error_description": "Device flow not supported",
+        }
+        with patch.object(auth_module, "_load_cache", return_value=MagicMock()), \
+             patch.object(auth_module, "_build_app", return_value=app), \
+             patch.object(auth_module, "_save_cache"):
+            with pytest.raises(AuthError, match="Device flow not supported"):
+                get_access_token()
 
     def test_raises_auth_error_when_msal_returns_error(self):
         app = self._mock_app(
