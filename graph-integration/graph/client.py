@@ -5,9 +5,14 @@ from azure.core.credentials import AccessToken
 from kiota_abstractions.api_error import APIError
 from msgraph import GraphServiceClient
 
+from msgraph.generated.models.attendee import Attendee
+from msgraph.generated.models.attendee_type import AttendeeType
 from msgraph.generated.models.body_type import BodyType
+from msgraph.generated.models.date_time_time_zone import DateTimeTimeZone
 from msgraph.generated.models.email_address import EmailAddress
+from msgraph.generated.models.event import Event
 from msgraph.generated.models.item_body import ItemBody
+from msgraph.generated.models.location import Location
 from msgraph.generated.models.message import Message
 from msgraph.generated.models.recipient import Recipient
 from msgraph.generated.users.item.send_mail.send_mail_post_request_body import SendMailPostRequestBody
@@ -92,3 +97,55 @@ class GraphClient:
                 status_code=e.response_status_code,
                 message=str(e.error.message if getattr(e, "error", None) else e),
             )
+
+    async def create_event(
+        self,
+        subject: str,
+        start: datetime,
+        end: datetime,
+        attendees: list[str],
+        body: str = None,
+        location: str = None,
+    ):
+        event = Event(
+            subject=subject,
+            start=DateTimeTimeZone(date_time=start.isoformat(), time_zone="UTC"),
+            end=DateTimeTimeZone(date_time=end.isoformat(), time_zone="UTC"),
+            attendees=[
+                Attendee(
+                    email_address=EmailAddress(address=addr),
+                    type=AttendeeType.Required,
+                )
+                for addr in attendees
+            ],
+            body=ItemBody(content_type=BodyType.Html, content=body) if body else None,
+            location=Location(display_name=location) if location else None,
+        )
+        try:
+            return await self._graph.me.events.post(event)
+        except APIError as e:
+            raise GraphAPIError(
+                status_code=e.response_status_code,
+                message=str(getattr(e, "error", None) or e),
+            )
+
+    async def get_event_responses(self, event_id: str) -> dict:
+        try:
+            event = await self._graph.me.events.by_event_id(event_id).get()
+        except APIError as e:
+            raise GraphAPIError(
+                status_code=e.response_status_code,
+                message=str(getattr(e, "error", None) or e),
+            )
+        result: dict[str, list] = {
+            "accepted": [],
+            "declined": [],
+            "tentativelyAccepted": [],
+            "none": [],
+        }
+        for attendee in event.attendees or []:
+            status = attendee.status.response.value if attendee.status else "none"
+            email = attendee.email_address.address if attendee.email_address else ""
+            bucket = status if status in result else "none"
+            result[bucket].append(email)
+        return result

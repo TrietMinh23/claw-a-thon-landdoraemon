@@ -82,3 +82,65 @@ class TestListEmails:
         )
         await client.list_emails(folder="sentitems", top=10)
         mock_graph.me.mail_folders.by_mail_folder_id.assert_called_once_with("sentitems")
+
+
+from datetime import datetime, timezone
+
+
+class TestCreateEvent:
+    async def test_posts_event_and_returns_result(self, client, mock_graph):
+        fake_event = MagicMock()
+        mock_graph.me.events.post = AsyncMock(return_value=fake_event)
+        start = datetime(2026, 6, 20, 9, 0, tzinfo=timezone.utc)
+        end = datetime(2026, 6, 20, 11, 0, tzinfo=timezone.utc)
+        result = await client.create_event(
+            subject="Workshop Session 1",
+            start=start,
+            end=end,
+            attendees=["a@co.com", "b@co.com"],
+        )
+        assert result is fake_event
+        mock_graph.me.events.post.assert_called_once()
+
+    async def test_includes_location_when_provided(self, client, mock_graph):
+        mock_graph.me.events.post = AsyncMock(return_value=MagicMock())
+        start = datetime(2026, 6, 20, 9, 0, tzinfo=timezone.utc)
+        end = datetime(2026, 6, 20, 11, 0, tzinfo=timezone.utc)
+        await client.create_event(
+            subject="S", start=start, end=end, attendees=[], location="HN Room"
+        )
+        posted_event = mock_graph.me.events.post.call_args[0][0]
+        assert posted_event.location.display_name == "HN Room"
+
+
+class TestGetEventResponses:
+    async def test_groups_attendees_by_response_status(self, client, mock_graph):
+        def make_attendee(email, status_value):
+            a = MagicMock()
+            a.email_address.address = email
+            a.status.response.value = status_value
+            return a
+
+        fake_event = MagicMock()
+        fake_event.attendees = [
+            make_attendee("a@co.com", "accepted"),
+            make_attendee("b@co.com", "declined"),
+            make_attendee("c@co.com", "tentativelyAccepted"),
+            make_attendee("d@co.com", "none"),
+        ]
+        mock_graph.me.events.by_event_id.return_value.get = AsyncMock(return_value=fake_event)
+
+        result = await client.get_event_responses("event-id-123")
+        assert result == {
+            "accepted": ["a@co.com"],
+            "declined": ["b@co.com"],
+            "tentativelyAccepted": ["c@co.com"],
+            "none": ["d@co.com"],
+        }
+
+    async def test_returns_empty_lists_when_no_attendees(self, client, mock_graph):
+        fake_event = MagicMock()
+        fake_event.attendees = []
+        mock_graph.me.events.by_event_id.return_value.get = AsyncMock(return_value=fake_event)
+        result = await client.get_event_responses("event-id-000")
+        assert result == {"accepted": [], "declined": [], "tentativelyAccepted": [], "none": []}
