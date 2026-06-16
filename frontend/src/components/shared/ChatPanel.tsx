@@ -1,6 +1,6 @@
 // frontend/src/components/shared/ChatPanel.tsx
 import { useState, useRef, useEffect } from 'react'
-import { Input, Button, Space, Typography, Tag, Flex } from 'antd'
+import { Input, Button, Typography, Tag, Flex } from 'antd'
 import { SendOutlined, PictureOutlined, CloseOutlined } from '@ant-design/icons'
 import type { ChatMessage } from '../../types'
 

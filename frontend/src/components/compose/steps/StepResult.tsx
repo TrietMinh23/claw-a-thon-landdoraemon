@@ -133,7 +133,7 @@ export default function StepResult({
                   history={chatHistory}
                   onSend={onChatSend}
                   isRefining={isRefining}
-                  disabled={genState === 'generating'}
+                  disabled={false}
                   quickChips={quickChips}
                   hideTitle
                 />

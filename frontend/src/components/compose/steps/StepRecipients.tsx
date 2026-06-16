@@ -9,7 +9,7 @@ interface Props {
   onNext: () => void
 }
 
-export default function StepRecipients({ participants, onRecipients, onNext }: Props) {
+export default function StepRecipients({ participants: _participants, onRecipients, onNext }: Props) {
   return (
     <div>
       <Typography.Title level={4} style={{ marginBottom: 4 }}>Học viên nhận mail</Typography.Title>

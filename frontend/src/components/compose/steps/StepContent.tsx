@@ -24,9 +24,9 @@ interface Props {
 
 export default function StepContent({
   programName, setProgramName,
-  date, setDate,
-  timeStart, setTimeStart,
-  timeEnd, setTimeEnd,
+  date: _date, setDate,
+  timeStart: _timeStart, setTimeStart,
+  timeEnd: _timeEnd, setTimeEnd,
   location, setLocation,
   hrbpName, setHrbpName,
   additionalNotes, setAdditionalNotes,
