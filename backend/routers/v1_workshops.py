@@ -86,10 +86,11 @@ async def send_reminders(workshop_id: str, req: RemindRequest):
         raise HTTPException(502, f"Graph API error: {e.message}")
     targets = rsvp.get("none", []) + rsvp.get("tentativelyAccepted", [])
     sent = 0
+    failed = []
     for addr in targets:
         try:
             await client.send_email(to=[addr], subject=req.subject, body=req.body_html, html=True)
             sent += 1
         except GraphAPIError:
-            pass
-    return {"sent_count": sent, "targets": targets}
+            failed.append(addr)
+    return {"sent_count": sent, "targets": targets, "failed_targets": failed}

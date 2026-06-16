@@ -1,17 +1,25 @@
 # backend/tests/test_v1_workshops.py
+import sys
+import os
+import pytest
+from unittest.mock import patch, AsyncMock, MagicMock
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-# We need to import main AFTER the sys.path is set
-# But main.py needs to include the router first (Task 6).
-# For now, test the router directly:
-from fastapi import FastAPI
 from routers.v1_workshops import router
+from graph.exceptions import AuthError, GraphAPIError
 
 app = FastAPI()
 app.include_router(router)
 client = TestClient(app)
+
+
+def make_workshops_app():
+    app = FastAPI()
+    app.include_router(router)
+    return app
 
 
 def test_list_workshops():
@@ -38,18 +46,6 @@ def test_get_attendees():
     assert len(r.json()) == 8
 
 
-import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
-
-
-def make_workshops_app():
-    from fastapi import FastAPI
-    from routers.v1_workshops import router
-    app = FastAPI()
-    app.include_router(router)
-    return app
-
-
 def test_invite_creates_event_and_returns_event_id():
     mock_event = MagicMock()
     mock_event.id = "event-abc123"
@@ -73,7 +69,6 @@ def test_invite_creates_event_and_returns_event_id():
 
 
 def test_invite_503_when_not_authenticated():
-    from graph.exceptions import AuthError
     with patch("routers.v1_workshops.graph_service") as mock_svc:
         mock_svc.get_client.side_effect = AuthError("Not authenticated")
         client = TestClient(make_workshops_app())
@@ -124,3 +119,18 @@ def test_remind_sends_to_none_and_tentative():
     assert resp.status_code == 200
     assert resp.json()["sent_count"] == 2
     assert mock_client.send_email.await_count == 2
+    assert "failed_targets" in resp.json()
+
+
+def test_remind_502_when_graph_api_error():
+    with patch("routers.v1_workshops.graph_service") as mock_svc:
+        mock_client = AsyncMock()
+        mock_client.get_event_responses = AsyncMock(side_effect=GraphAPIError(502, "upstream error"))
+        mock_svc.get_client.return_value = mock_client
+        client = TestClient(make_workshops_app())
+        resp = client.post("/api/v1/workshops/wb-001/remind", json={
+            "event_id": "event-abc123",
+            "subject": "Reminder",
+            "body_html": "<p>Nhắc</p>",
+        })
+    assert resp.status_code == 502
