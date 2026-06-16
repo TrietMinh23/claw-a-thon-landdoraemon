@@ -6,6 +6,8 @@ import { useEmailContext } from '../../contexts/EmailContext'
 import { EMAIL_TYPES } from './EmailTypeSelector'
 import StepRecipients from './steps/StepRecipients'
 import StepContent from './steps/StepContent'
+import StepEmailType from './steps/StepEmailType'
+import StepImages from './steps/StepImages'
 import type { Participant, Workshop, ChatMessage, EmailDraft, ImageEntry } from '../../types'
 
 type GenState = 'idle' | 'generating' | 'ready' | 'editing'
@@ -213,16 +215,17 @@ export default function ComposePage() {
           />
         )}
         {currentStep === 2 && (
-          <div data-step="email-type">
-            {/* StepEmailType — added in Task 3 */}
-            <div>Step 3: Loại email placeholder</div>
-          </div>
+          <StepEmailType
+            emailType={emailType} setEmailType={setEmailType}
+            extraInstructions={extraInstructions} setExtraInstructions={setExtraInstructions}
+            onNext={goNext} onBack={goBack}
+          />
         )}
         {currentStep === 3 && (
-          <div data-step="images">
-            {/* StepImages — added in Task 3 */}
-            <div>Step 4: Hình ảnh placeholder</div>
-          </div>
+          <StepImages
+            images={images} setImages={setImages}
+            onNext={goNext} onBack={goBack}
+          />
         )}
         {currentStep === 4 && (
           <div data-step="result">
