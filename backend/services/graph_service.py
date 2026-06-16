@@ -10,6 +10,7 @@ from graph.auth import (
     TOKEN_URL,
     DEVICE_CODE_URL,
     SCOPE_STRING,
+    TOKEN_CACHE_PATH,
 )
 from graph.client import GraphClient
 from graph.exceptions import AuthError
@@ -59,7 +60,7 @@ def start_device_flow() -> dict:
 
 
 def poll_device_flow() -> bool:
-    global _pending_flow, _client
+    global _pending_flow
     if _pending_flow is None:
         raise AuthError("No device flow in progress. Call /auth/start first.")
     if time.time() > _pending_flow["expires_at"]:
@@ -80,7 +81,6 @@ def poll_device_flow() -> bool:
         }
         _save_token_cache(cache)
         _pending_flow = None
-        _client = GraphClient()
         return True
     error = result.get("error")
     if error in ("authorization_pending", "slow_down"):
@@ -95,6 +95,5 @@ def reset_client() -> None:
     global _client, _pending_flow
     _client = None
     _pending_flow = None
-    cache_path = os.environ.get("TOKEN_CACHE_PATH", "token_cache.json")
-    if os.path.exists(cache_path):
-        os.remove(cache_path)
+    if os.path.exists(TOKEN_CACHE_PATH):
+        os.remove(TOKEN_CACHE_PATH)
