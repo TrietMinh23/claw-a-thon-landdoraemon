@@ -90,15 +90,22 @@ export default function EmailPreview({
           spellCheck={false}
         />
       ) : (
-        <div
+        <iframe
+          srcDoc={html || '<p style="color:#9ca3af;text-align:center;padding:60px 0">⏳ Toro đang soạn mail...</p>'}
           style={{
-            minHeight: 300,
+            width: '100%',
+            minHeight: 480,
             border: '1px solid #e5e7eb',
             borderRadius: 8,
-            padding: '16px',
             background: isGenerating ? '#fafafa' : '#fff',
           }}
-          dangerouslySetInnerHTML={{ __html: html || '<p style="color:#9ca3af;text-align:center;padding:60px 0">⏳ Toro đang soạn mail...</p>' }}
+          sandbox="allow-same-origin"
+          title="Email preview"
+          onLoad={e => {
+            const iframe = e.currentTarget
+            const body = iframe.contentDocument?.body
+            if (body) iframe.style.height = body.scrollHeight + 32 + 'px'
+          }}
         />
       )}
     </Space>
