@@ -10,6 +10,9 @@ type GenState = 'idle' | 'generating' | 'ready' | 'editing'
 
 const STEP_TITLES = ['Học viên', 'Nội dung', 'Loại email', 'Hình ảnh', 'Kết quả']
 
+const stripFences = (s: string) =>
+  s.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```\s*$/, '').trim()
+
 export default function ComposePage() {
   const { addEmail } = useEmailContext()
 
@@ -40,15 +43,12 @@ export default function ComposePage() {
   const [genState, setGenState] = useState<GenState>('idle')
   const [emailHtml, setEmailHtml] = useState('')
   const [subject, setSubject] = useState('')
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+  const [, setChatHistory] = useState<ChatMessage[]>([])
   const [isRefining, setIsRefining] = useState(false)
 
   const accRef = useRef('')
   const lastFlushRef = useRef(0)
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const stripFences = (s: string) =>
-    s.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```\s*$/, '').trim()
 
   const flushHtml = useCallback(() => {
     flushTimerRef.current = null
@@ -99,15 +99,18 @@ export default function ComposePage() {
       setGenState('ready')
     } catch (e) {
       if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
-      message.error(String(e))
+      message.error(e instanceof Error ? e.message : String(e))
       setGenState('idle')
     }
   }, [emailType, workshopContext, extraInstructions, images, selectedWorkshop, programName, onChunk])
 
   const handleChatSend = useCallback(async (msg: string, imageDataUrl?: string) => {
     const userMsg: ChatMessage = { role: 'user', content: msg }
-    const updatedHistory = [...chatHistory, userMsg]
-    setChatHistory(updatedHistory)
+    let updatedHistory: ChatMessage[] = []
+    setChatHistory(h => {
+      updatedHistory = [...h, userMsg]
+      return updatedHistory
+    })
     setIsRefining(true)
     setGenState('editing')
     accRef.current = ''
@@ -123,12 +126,12 @@ export default function ComposePage() {
       setChatHistory(h => [...h, { role: 'assistant', content: 'Email đã được cập nhật.' }])
       setGenState('ready')
     } catch (e) {
-      message.error(String(e))
+      message.error(e instanceof Error ? e.message : String(e))
       setGenState('ready')
     } finally {
       setIsRefining(false)
     }
-  }, [emailHtml, chatHistory, onChunk])
+  }, [emailHtml, onChunk])
 
   const handleSendToQueue = useCallback(async () => {
     const typeLabel = EMAIL_TYPES.find(t => t.value === emailType)?.label ?? emailType
@@ -154,7 +157,8 @@ export default function ComposePage() {
   }, [emailType, emailHtml, participants, subject, addEmail])
 
   const goToStep = (step: number) => {
-    if (step >= currentStep) return
+    if (step > currentStep) { message.info('Hãy hoàn thành bước hiện tại trước.'); return }
+    if (step === currentStep) return
     if (currentStep === 4) setGenState('idle')
     setCurrentStep(step)
   }
