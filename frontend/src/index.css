@@ -1,2 +1,23 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #f5f7fb; }
+
+@media print {
+  /* Hide navigation, sidebar, header, buttons when printing */
+  .ant-layout-sider,
+  .ant-layout-header,
+  nav,
+  button,
+  .ant-btn,
+  .ant-space > *:last-child {
+    display: none !important;
+  }
+  /* Make content full width */
+  .ant-layout-content,
+  .ant-layout {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body {
+    background: white !important;
+  }
+}

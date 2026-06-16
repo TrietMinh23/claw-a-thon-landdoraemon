@@ -4,9 +4,9 @@
 backend/.env
 backend/token_cache.json
 backend/device_flow_state.json
-frontend/
-node_modules/
+**/node_modules
 __pycache__/
 *.pyc
 .git/
 docs/
+vcr-credentials.json

@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from openai import AsyncOpenAI
 from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 load_dotenv(find_dotenv())
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,7 +33,7 @@ app = FastAPI(title="Toro Mail Composer", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -233,6 +235,19 @@ async def dashboard_chat(req: DashboardChatRequest):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Serve React frontend static files (only if built static/ dir exists)
+_static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_static_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(_static_dir, "assets")), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def serve_spa(full_path: str):
+        file_path = os.path.join(_static_dir, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(_static_dir, "index.html"))
 
 
 class ParticipantData(BaseModel):

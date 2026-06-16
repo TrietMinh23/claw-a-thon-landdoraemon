@@ -117,7 +117,7 @@ export default function GraphAuthModal({ open, onSuccess, onCancel }: Props) {
       )}
 
       {step === 'done' && (
-        <Flex direction="column" align="center" justify="center" style={{ padding: '24px 0', gap: 12 }}>
+        <Flex vertical align="center" justify="center" style={{ padding: '24px 0', gap: 12 }}>
           <CheckCircleOutlined style={{ fontSize: 48, color: '#16a34a' }} />
           <Typography.Text strong style={{ fontSize: 16 }}>Xác thực thành công!</Typography.Text>
           <Typography.Text type="secondary">Đang gửi email...</Typography.Text>

@@ -6,8 +6,8 @@ import mock_data
 import services.graph_service as graph_service
 from graph.exceptions import AuthError, GraphAPIError
 
-# Set MOCK_EMAIL_SEND=false in .env to enable real Graph API sending
-MOCK_EMAIL_SEND = os.getenv("MOCK_EMAIL_SEND", "true").lower() != "false"
+# Mutable at runtime via POST /api/v1/_config/mock-email
+_mock_email_send: bool = os.getenv("MOCK_EMAIL_SEND", "true").lower() != "false"
 
 router = APIRouter(prefix="/api/v1")
 
@@ -61,7 +61,7 @@ async def approve_email(email_id: str):
     body = draft.get("body") or draft.get("preview") or ""
     if not to:
         raise HTTPException(400, "Email có no recipients")
-    if MOCK_EMAIL_SEND:
+    if _mock_email_send:
         print(f"[mock] Would send '{subject}' → {to}")
     else:
         try:
@@ -76,3 +76,19 @@ async def approve_email(email_id: str):
     if email_id in _compose_drafts:
         _compose_drafts[email_id]["status"] = "approved"
     return {"id": email_id, "status": "sent"}
+
+
+class MockEmailConfig(BaseModel):
+    enabled: bool
+
+
+@router.post("/_config/mock-email", include_in_schema=False)
+def set_mock_email(config: MockEmailConfig):
+    global _mock_email_send
+    _mock_email_send = config.enabled
+    return {"mock_email_send": _mock_email_send}
+
+
+@router.get("/_config/mock-email", include_in_schema=False)
+def get_mock_email():
+    return {"mock_email_send": _mock_email_send}

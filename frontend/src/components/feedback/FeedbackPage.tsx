@@ -285,7 +285,7 @@ export default function FeedbackPage() {
         <Button
           type="primary"
           icon={<DownloadOutlined />}
-          onClick={() => message.info('Đang xuất báo cáo PDF...')}
+          onClick={() => window.print()}
         >
           Export báo cáo PDF
         </Button>
