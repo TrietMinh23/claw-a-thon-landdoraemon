@@ -1,6 +1,6 @@
 // frontend/src/components/compose/steps/StepResult.tsx
 import { useEffect, useState } from 'react'
-import { Button, Flex, Space, Typography } from 'antd'
+import { Button, Flex, Space, Typography, message } from 'antd'
 import { MessageOutlined, CloseOutlined } from '@ant-design/icons'
 import EmailPreview from '../../shared/EmailPreview'
 import ChatPanel from '../../shared/ChatPanel'
@@ -44,7 +44,7 @@ export default function StepResult({
         {genState === 'ready' && (
           <Space>
             <Button onClick={onSendToQueue}>Thêm vào hàng chờ duyệt</Button>
-            <Button type="primary" style={{ background: '#16a34a', borderColor: '#16a34a' }}>
+            <Button type="primary" style={{ background: '#16a34a', borderColor: '#16a34a' }} onClick={() => message.info('Tính năng đang phát triển.')}>
               Gửi ngay
             </Button>
           </Space>
@@ -54,7 +54,7 @@ export default function StepResult({
       {/* Split container */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         {/* Email preview */}
-        <div style={{ flex: 1, minWidth: 0, transition: 'flex 0.3s ease' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <EmailPreview
             html={emailHtml}
             isGenerating={genState === 'generating'}
