@@ -8,6 +8,7 @@ import StepRecipients from './steps/StepRecipients'
 import StepContent from './steps/StepContent'
 import StepEmailType from './steps/StepEmailType'
 import StepImages from './steps/StepImages'
+import StepResult from './steps/StepResult'
 import type { Participant, Workshop, ChatMessage, EmailDraft, ImageEntry } from '../../types'
 
 type GenState = 'idle' | 'generating' | 'ready' | 'editing'
@@ -228,10 +229,21 @@ export default function ComposePage() {
           />
         )}
         {currentStep === 4 && (
-          <div data-step="result">
-            {/* StepResult — added in Task 4 */}
-            <div>Step 5: Kết quả placeholder</div>
-          </div>
+          <StepResult
+            genState={genState}
+            emailHtml={emailHtml}
+            subject={subject}
+            toLabel={toLabel}
+            chatHistory={chatHistory}
+            isRefining={isRefining}
+            quickChips={selectedTypeConfig?.hintChips ?? []}
+            onGenerate={handleGenerate}
+            onChatSend={handleChatSend}
+            onSendToQueue={handleSendToQueue}
+            onEmailChange={setEmailHtml}
+            onSubjectChange={setSubject}
+            onBack={goBack}
+          />
         )}
       </Card>
     </div>
