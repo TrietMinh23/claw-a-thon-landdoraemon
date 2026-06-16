@@ -2,6 +2,11 @@ class AuthError(Exception):
     pass
 
 
+class UpstreamAuthError(AuthError):
+    """Microsoft returned an unexpected error during device flow."""
+    pass
+
+
 class GraphAPIError(Exception):
     def __init__(self, status_code: int, message: str):
         self.status_code = status_code

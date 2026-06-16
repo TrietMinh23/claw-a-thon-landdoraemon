@@ -13,7 +13,7 @@ from graph.auth import (
     TOKEN_CACHE_PATH,
 )
 from graph.client import GraphClient
-from graph.exceptions import AuthError
+from graph.exceptions import AuthError, UpstreamAuthError
 
 _client: GraphClient | None = None
 _pending_flow: dict | None = None
@@ -88,7 +88,7 @@ def poll_device_flow() -> bool:
             _pending_flow["interval"] += 5
         return False
     _pending_flow = None
-    raise AuthError(result.get("error_description", error))
+    raise UpstreamAuthError(result.get("error_description", error))
 
 
 def reset_client() -> None:

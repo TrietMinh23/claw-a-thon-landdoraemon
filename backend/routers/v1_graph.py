@@ -1,7 +1,7 @@
 # backend/routers/v1_graph.py
 from fastapi import APIRouter, HTTPException
 import services.graph_service as graph_service
-from graph.exceptions import AuthError
+from graph.exceptions import AuthError, GraphAPIError, UpstreamAuthError
 
 router = APIRouter(prefix="/api/v1/graph")
 
@@ -18,7 +18,7 @@ async def auth_status():
             "user_display_name": me.display_name,
             "user_email": me.mail,
         }
-    except Exception:
+    except (AuthError, GraphAPIError):
         return {"authenticated": True, "user_display_name": None, "user_email": None}
 
 
@@ -35,6 +35,8 @@ def auth_poll():
     try:
         done = graph_service.poll_device_flow()
         return {"done": done}
+    except UpstreamAuthError as e:
+        raise HTTPException(502, str(e))
     except AuthError as e:
         raise HTTPException(400, str(e))
 
