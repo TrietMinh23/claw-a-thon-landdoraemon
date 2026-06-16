@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import mock_data
 from fastapi import FastAPI
 from routers.v1_emails import router
+from unittest.mock import patch, AsyncMock
 
 app = FastAPI()
 app.include_router(router)
@@ -25,9 +26,13 @@ def test_list_emails():
 
 
 def test_approve_email():
-    r = client.put("/api/v1/emails/em-001/approve")
+    mock_graph_client = AsyncMock()
+    mock_graph_client.send_email = AsyncMock(return_value=None)
+    with patch("routers.v1_emails.graph_service") as mock_svc:
+        mock_svc.get_client.return_value = mock_graph_client
+        r = client.put("/api/v1/emails/em-001/approve")
     assert r.status_code == 200
-    assert r.json()["status"] == "approved"
+    assert r.json()["status"] == "sent"
     r2 = client.get("/api/v1/emails")
     statuses = {e["id"]: e["status"] for e in r2.json()}
     assert statuses["em-001"] == "approved"
@@ -35,5 +40,42 @@ def test_approve_email():
 
 
 def test_approve_nonexistent():
-    r = client.put("/api/v1/emails/em-999/approve")
+    with patch("routers.v1_emails.graph_service"):
+        r = client.put("/api/v1/emails/em-999/approve")
     assert r.status_code == 404
+
+
+def make_emails_app():
+    from fastapi import FastAPI
+    from routers.v1_emails import router
+    app = FastAPI()
+    app.include_router(router)
+    return app
+
+
+def test_approve_sends_email_via_graph():
+    mock_client = AsyncMock()
+    mock_client.send_email = AsyncMock(return_value=None)
+    with patch("routers.v1_emails.graph_service") as mock_svc:
+        mock_svc.get_client.return_value = mock_client
+        client = TestClient(make_emails_app())
+        resp = client.put("/api/v1/emails/em-001/approve")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "sent"
+    mock_client.send_email.assert_awaited_once()
+
+
+def test_approve_503_when_not_authenticated():
+    from graph.exceptions import AuthError
+    with patch("routers.v1_emails.graph_service") as mock_svc:
+        mock_svc.get_client.side_effect = AuthError("Not authenticated")
+        client = TestClient(make_emails_app())
+        resp = client.put("/api/v1/emails/em-001/approve")
+    assert resp.status_code == 503
+
+
+def test_approve_404_unknown_email():
+    with patch("routers.v1_emails.graph_service"):
+        client = TestClient(make_emails_app())
+        resp = client.put("/api/v1/emails/em-999/approve")
+    assert resp.status_code == 404
