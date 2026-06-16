@@ -52,13 +52,62 @@ WORKSHOPS = [
 ]
 
 EMAIL_DRAFTS = [
-    {"id": "em-001", "type": "invite", "label": "Email mời tham dự — Session 1", "session": 1, "date": "25/03/2026", "count": 29, "status": "pending", "time": "08:42", "preview": "Starter thân mến, Toro trân trọng mời Minh đến tham gia Strengths-based Development Workshop..."},
-    {"id": "em-002", "type": "invite", "label": "Email mời tham dự — Session 2", "session": 2, "date": "26/03/2026", "count": 27, "status": "pending", "time": "08:43", "preview": "Starter thân mến, Toro trân trọng mời Lan đến tham gia Strengths-based Development Workshop..."},
-    {"id": "em-003", "type": "invite", "label": "Email mời tham dự — Session 3", "session": 3, "date": "27/03/2026", "count": 22, "status": "pending", "time": "08:44", "preview": "Starter thân mến, Toro trân trọng mời Hùng đến tham gia Strengths-based Development Workshop..."},
-    {"id": "em-004", "type": "invite", "label": "Email mời tham dự — Session 4", "session": 4, "date": "31/03/2026", "count": 26, "status": "pending", "time": "08:45", "preview": "Starter thân mến, Toro trân trọng mời Tuấn đến tham gia Strengths-based Development Workshop..."},
-    {"id": "em-005", "type": "setup", "label": "Setup phòng — AF & IT", "session": None, "date": "Tất cả sessions", "count": 1, "status": "pending", "time": "08:46", "preview": "Dear AF và IT team, Team Zalopay có tổ chức workshop theo lịch dưới đây..."},
-    {"id": "em-006", "type": "remind", "label": "Remind 12h — Session 1", "session": 1, "date": "Gửi 24/03 chiều", "count": 29, "status": "pending", "time": "08:47", "preview": "Starter ơi, Buổi sáng ngày mai (25/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop..."},
-    {"id": "em-007", "type": "remind", "label": "Remind 12h — Session 2", "session": 2, "date": "Gửi 25/03 chiều", "count": 27, "status": "pending", "time": "08:48", "preview": "Starter ơi, Buổi sáng ngày mai (26/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop..."},
+    {
+        "id": "em-001", "type": "invite", "label": "Email mời tham dự — Session 1",
+        "session": 1, "date": "25/03/2026", "count": 29, "status": "pending", "time": "08:42",
+        "preview": "Starter thân mến, Toro trân trọng mời Minh đến tham gia Strengths-based Development Workshop...",
+        "to": ["minhNV@zalopay.vn", "lanTT@zalopay.vn"],
+        "subject": "Mời tham dự Strengths-based Development Workshop — Session 1 (25/03/2026)",
+        "body": "<p>Starter thân mến,</p><p>Toro trân trọng mời bạn tham gia <strong>Strengths-based Development Workshop</strong> — Session 1 vào ngày 25/03/2026 lúc 9h30.</p>",
+    },
+    {
+        "id": "em-002", "type": "invite", "label": "Email mời tham dự — Session 2",
+        "session": 2, "date": "26/03/2026", "count": 27, "status": "pending", "time": "08:43",
+        "preview": "Starter thân mến, Toro trân trọng mời Lan đến tham gia Strengths-based Development Workshop...",
+        "to": ["hungL@zalopay.vn", "anhPT@zalopay.vn"],
+        "subject": "Mời tham dự Strengths-based Development Workshop — Session 2 (26/03/2026)",
+        "body": "<p>Starter thân mến,</p><p>Toro trân trọng mời bạn tham gia <strong>Strengths-based Development Workshop</strong> — Session 2 vào ngày 26/03/2026 lúc 9h30.</p>",
+    },
+    {
+        "id": "em-003", "type": "invite", "label": "Email mời tham dự — Session 3",
+        "session": 3, "date": "27/03/2026", "count": 22, "status": "pending", "time": "08:44",
+        "preview": "Starter thân mến, Toro trân trọng mời Hùng đến tham gia Strengths-based Development Workshop...",
+        "to": ["hoaDT@zalopay.vn", "khoaVM@zalopay.vn"],
+        "subject": "Mời tham dự Strengths-based Development Workshop — Session 3 (27/03/2026)",
+        "body": "<p>Starter thân mến,</p><p>Toro trân trọng mời bạn tham gia <strong>Strengths-based Development Workshop</strong> — Session 3 vào ngày 27/03/2026 lúc 9h30.</p>",
+    },
+    {
+        "id": "em-004", "type": "invite", "label": "Email mời tham dự — Session 4",
+        "session": 4, "date": "31/03/2026", "count": 26, "status": "pending", "time": "08:45",
+        "preview": "Starter thân mến, Toro trân trọng mời Tuấn đến tham gia Strengths-based Development Workshop...",
+        "to": ["thuNT@zalopay.vn", "huyBQ@zalopay.vn"],
+        "subject": "Mời tham dự Strengths-based Development Workshop — Session 4 (31/03/2026)",
+        "body": "<p>Starter thân mến,</p><p>Toro trân trọng mời bạn tham gia <strong>Strengths-based Development Workshop</strong> — Session 4 vào ngày 31/03/2026 lúc 9h30.</p>",
+    },
+    {
+        "id": "em-005", "type": "setup", "label": "Setup phòng — AF & IT",
+        "session": None, "date": "Tất cả sessions", "count": 1, "status": "pending", "time": "08:46",
+        "preview": "Dear AF và IT team, Team Zalopay có tổ chức workshop theo lịch dưới đây...",
+        "to": ["af-team@zalopay.vn", "it-support@zalopay.vn"],
+        "subject": "Yêu cầu setup phòng — Strengths-based Development Workshop (24/03–31/03)",
+        "body": "<p>Dear AF và IT team,</p><p>Team L&D có tổ chức workshop theo lịch dưới đây. Nhờ anh/chị hỗ trợ setup phòng và thiết bị.</p>",
+    },
+    {
+        "id": "em-006", "type": "remind", "label": "Remind 12h — Session 1",
+        "session": 1, "date": "Gửi 24/03 chiều", "count": 29, "status": "pending", "time": "08:47",
+        "preview": "Starter ơi, Buổi sáng ngày mai (25/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop...",
+        "to": ["minhNV@zalopay.vn", "lanTT@zalopay.vn"],
+        "subject": "Reminder: Strengths Workshop Session 1 — ngày mai 25/03 lúc 9h30",
+        "body": "<p>Starter ơi,</p><p>Reminder buổi sáng ngày mai <strong>25/03/2026 lúc 9h30</strong> chúng ta có Strengths Workshop Session 1 nhé!</p>",
+    },
+    {
+        "id": "em-007", "type": "remind", "label": "Remind 12h — Session 2",
+        "session": 2, "date": "Gửi 25/03 chiều", "count": 27, "status": "pending", "time": "08:48",
+        "preview": "Starter ơi, Buổi sáng ngày mai (26/3/2026) lúc 9h30-12h chúng ta có hẹn tại Strengths Workshop...",
+        "to": ["hungL@zalopay.vn", "anhPT@zalopay.vn"],
+        "subject": "Reminder: Strengths Workshop Session 2 — ngày mai 26/03 lúc 9h30",
+        "body": "<p>Starter ơi,</p><p>Reminder buổi sáng ngày mai <strong>26/03/2026 lúc 9h30</strong> chúng ta có Strengths Workshop Session 2 nhé!</p>",
+    },
 ]
 
 ATTENDEES = [
