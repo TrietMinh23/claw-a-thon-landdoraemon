@@ -4,6 +4,8 @@ import { Card, Steps, message } from 'antd'
 import { streamGenerateV1, streamChatEdit, postEmailDraft } from '../../api'
 import { useEmailContext } from '../../contexts/EmailContext'
 import { EMAIL_TYPES } from './EmailTypeSelector'
+import StepRecipients from './steps/StepRecipients'
+import StepContent from './steps/StepContent'
 import type { Participant, Workshop, ChatMessage, EmailDraft, ImageEntry } from '../../types'
 
 type GenState = 'idle' | 'generating' | 'ready' | 'editing'
@@ -192,16 +194,23 @@ export default function ComposePage() {
         />
 
         {currentStep === 0 && (
-          <div data-step="recipients">
-            {/* StepRecipients — added in Task 2 */}
-            <div>Step 1: Học viên placeholder</div>
-          </div>
+          <StepRecipients
+            participants={participants}
+            onRecipients={(p, w) => { setParticipants(p); setSelectedWorkshop(w) }}
+            onNext={goNext}
+          />
         )}
         {currentStep === 1 && (
-          <div data-step="content">
-            {/* StepContent — added in Task 2 */}
-            <div>Step 2: Nội dung placeholder</div>
-          </div>
+          <StepContent
+            programName={programName} setProgramName={setProgramName}
+            date={date} setDate={setDate}
+            timeStart={timeStart} setTimeStart={setTimeStart}
+            timeEnd={timeEnd} setTimeEnd={setTimeEnd}
+            location={location} setLocation={setLocation}
+            hrbpName={hrbpName} setHrbpName={setHrbpName}
+            additionalNotes={additionalNotes} setAdditionalNotes={setAdditionalNotes}
+            onNext={goNext} onBack={goBack}
+          />
         )}
         {currentStep === 2 && (
           <div data-step="email-type">
