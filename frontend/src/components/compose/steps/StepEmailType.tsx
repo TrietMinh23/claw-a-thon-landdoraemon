@@ -32,7 +32,7 @@ export default function StepEmailType({ emailType, setEmailType, extraInstructio
             <Tag
               key={chip}
               style={{ cursor: 'pointer', fontSize: 12 }}
-              onClick={() => setExtraInstructions(prev => prev ? `${prev}, ${chip}` : chip)}
+              onClick={() => setExtraInstructions(extraInstructions ? `${extraInstructions}, ${chip}` : chip)}
             >
               {chip}
             </Tag>
