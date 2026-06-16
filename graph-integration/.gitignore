@@ -1,6 +1,0 @@
-.env
-token_cache.json
-__pycache__/
-.pytest_cache/
-*.pyc
-.venv/
