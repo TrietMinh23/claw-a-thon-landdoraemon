@@ -96,23 +96,17 @@ function CertificatePreview({ attendee }: CertificatePreviewProps) {
       <div style={{ position: 'absolute', bottom: 12, left: 12, width: 20, height: 20, borderBottom: '3px solid #52c41a', borderLeft: '3px solid #52c41a', borderRadius: '0 0 0 4px' }} />
       <div style={{ position: 'absolute', bottom: 12, right: 12, width: 20, height: 20, borderBottom: '3px solid #52c41a', borderRight: '3px solid #52c41a', borderRadius: '0 0 4px 0' }} />
 
-      {/* ZaloPay logo placeholder */}
-      <div
+      {/* ZaloPay logo */}
+      <img
+        src="/Zalopay_logo.png"
+        alt="ZaloPay"
         style={{
-          background: '#003087',
-          color: '#fff',
-          fontWeight: 800,
-          fontSize: 18,
-          letterSpacing: 1,
-          borderRadius: 6,
-          padding: '4px 16px',
+          height: 40,
           marginTop: 8,
           marginBottom: 12,
-          fontFamily: 'sans-serif',
+          objectFit: 'contain',
         }}
-      >
-        ZaloPay
-      </div>
+      />
 
       <Text
         style={{

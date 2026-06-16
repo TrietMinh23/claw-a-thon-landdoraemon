@@ -135,6 +135,14 @@ export async function uploadRecipients(file: File): Promise<{ participants: Part
   return res.json()
 }
 
+// --- Dashboard chat ---
+export async function streamDashboardChat(
+  messages: { role: string; content: string }[],
+  onChunk: (text: string) => void,
+): Promise<void> {
+  for await (const chunk of readSSE('/api/v1/chat', { messages })) onChunk(chunk)
+}
+
 // --- Graph auth ---
 export async function getGraphAuthStatus(): Promise<{ authenticated: boolean; user_display_name?: string; user_email?: string }> {
   const res = await fetch('/api/v1/graph/auth/status')

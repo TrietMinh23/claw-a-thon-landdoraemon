@@ -1,6 +1,5 @@
 // frontend/src/components/layout/AppLayout.tsx
 import { Layout, Flex, Typography, Divider } from 'antd'
-import { RobotOutlined } from '@ant-design/icons'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 
@@ -24,7 +23,7 @@ export default function AppLayout() {
           <img src="/Zalopay_logo.png" alt="ZaloPay" style={{ height: 28, objectFit: 'contain' }} />
           <Divider type="vertical" style={{ height: 20, margin: '0 14px', borderColor: '#d9d9d9' }} />
           <Flex align="center" gap={8}>
-            <RobotOutlined style={{ fontSize: 16, color: '#16a34a' }} />
+            <img src="/toro.png" alt="Toro" style={{ height: 32, objectFit: 'contain' }} />
             <Typography.Text strong style={{ fontSize: 14 }}>Toro L&D Ops Assistant</Typography.Text>
           </Flex>
         </Flex>

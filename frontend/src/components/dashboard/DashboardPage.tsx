@@ -8,26 +8,10 @@ import {
 } from '@ant-design/icons'
 import { useEmailContext } from '../../contexts/EmailContext'
 import type { Workshop } from '../../types'
-import { fetchWorkshops } from '../../api'
+import { fetchWorkshops, streamDashboardChat } from '../../api'
 
 const COLOR_MAP: Record<string, string> = {
   purple: '#7c3aed', blue: '#2563eb', green: '#16a34a',
-}
-
-const CHAT_RESPONSES: Record<string, string> = {
-  rsvp: 'RSVP hiện tại: 78 accept, 8 decline, 6 tentative. Còn 12 chưa phản hồi.',
-  email: 'Bạn có 7 email đang chờ duyệt trong mục Duyệt Email.',
-  workshop: 'Đang có 3 workshop: Strengths-based Dev, Leadership Mindset, Onboarding Q3.',
-  feedback: 'Feedback Workshop 1: avg 4.6/5, NPS 72, satisfaction 92%.',
-  certificate: 'Tính năng Certificates đang phát triển. Sắp ra mắt!',
-}
-
-function getResponse(msg: string): string {
-  const lower = msg.toLowerCase()
-  for (const [key, res] of Object.entries(CHAT_RESPONSES)) {
-    if (lower.includes(key)) return res
-  }
-  return 'Xin chào! Hãy hỏi Toro về rsvp, email, workshop, feedback hoặc certificate nhé.'
 }
 
 interface ChatMsg { role: 'user' | 'toro'; text: string }
@@ -37,20 +21,37 @@ function ToroWidget() {
     { role: 'toro', text: 'Xin chào! Tôi là Toro. Hỏi tôi về workshop, RSVP, email nhé!' },
   ])
   const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
-  const send = () => {
+  const send = async () => {
     const msg = input.trim()
-    if (!msg) return
-    const response = getResponse(msg)
-    setMessages(prev => [
-      ...prev,
-      { role: 'user', text: msg },
-      { role: 'toro', text: response },
-    ])
+    if (!msg || loading) return
     setInput('')
+    const history = messages.map(m => ({ role: m.role === 'toro' ? 'assistant' : 'user', content: m.text }))
+    setMessages(prev => [...prev, { role: 'user', text: msg }])
+    setLoading(true)
+    setMessages(prev => [...prev, { role: 'toro', text: '' }])
+    try {
+      await streamDashboardChat(
+        [...history, { role: 'user', content: msg }],
+        chunk => setMessages(prev => {
+          const next = [...prev]
+          next[next.length - 1] = { role: 'toro', text: next[next.length - 1].text + chunk }
+          return next
+        }),
+      )
+    } catch {
+      setMessages(prev => {
+        const next = [...prev]
+        next[next.length - 1] = { role: 'toro', text: 'Đã có lỗi, vui lòng thử lại.' }
+        return next
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -75,7 +76,7 @@ function ToroWidget() {
           placeholder="Hỏi về rsvp, email, workshop..."
           onPressEnter={send}
         />
-        <Button size="small" type="primary" icon={<SendOutlined />} onClick={send} />
+        <Button size="small" type="primary" icon={<SendOutlined />} onClick={send} loading={loading} disabled={loading} />
       </Flex>
     </Card>
   )

@@ -84,6 +84,8 @@ async def generate_email(req: GenerateRequest):
             stream=True,
         )
         async for chunk in response:
+            if not chunk.choices:
+                continue
             text = chunk.choices[0].delta.content or ""
             if text:
                 yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
@@ -137,6 +139,8 @@ Không dùng <html>, <head>, <body>, hoặc inline CSS. Chỉ trả về HTML, k
             stream=True,
         )
         async for chunk in response:
+            if not chunk.choices:
+                continue
             text = chunk.choices[0].delta.content or ""
             if text:
                 yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
@@ -160,6 +164,70 @@ async def parse_participants_endpoint(file: UploadFile = File(...)):
     content = await file.read()
     participants = parse_participants(content, file.filename)
     return {"participants": participants, "count": len(participants)}
+
+
+class DashboardChatMessage(BaseModel):
+    role: str
+    content: str
+
+class DashboardChatRequest(BaseModel):
+    messages: list[DashboardChatMessage]
+
+@app.post("/api/v1/chat")
+async def dashboard_chat(req: DashboardChatRequest):
+    from mock_data import WORKSHOPS, EMAIL_DRAFTS, ATTENDEES
+
+    ctx = []
+    ctx.append("=== DANH SÁCH WORKSHOP ===")
+    for w in WORKSHOPS:
+        r = w["rsvp"]
+        ctx.append(
+            f"- {w['name']} | status={w['status']} | tiến độ={w['progress']}% | ngày={w['dates']} | phòng={w['room']} | "
+            f"tổng={w['total']} HV | sessions={w['sessions']} | "
+            f"RSVP: accept={r['accept']}, decline={r['decline']}, tentative={r['tentative']}, chưa phản hồi={r['none']}"
+        )
+
+    pending = [e for e in EMAIL_DRAFTS if e["status"] == "pending"]
+    ctx.append(f"\n=== EMAIL CHỜ DUYỆT ({len(pending)}) ===")
+    for e in pending:
+        ctx.append(f"- {e['label']} | ngày gửi={e['date']} | {e['count']} người nhận")
+
+    ctx.append(f"\n=== HỌC VIÊN ===")
+    for a in ATTENDEES:
+        ctx.append(f"- {a['name']} ({a['email']}) | BU={a['bu']} | session={a['session']} | rsvp={a['rsvp']}")
+
+    system_prompt = (
+        "Bạn là Toro, Brand Ambassador của L&D team tại ZaloPay. "
+        "Hỗ trợ L&D Ops quản lý workshop, theo dõi RSVP, duyệt email. "
+        "Trả lời ngắn gọn, thân thiện bằng tiếng Việt.\n\n"
+        "Dữ liệu hệ thống hiện tại:\n" + "\n".join(ctx)
+    )
+
+    client = make_client()
+    messages = [{"role": "system", "content": system_prompt}]
+    for m in req.messages:
+        messages.append({"role": m.role, "content": m.content})
+
+    async def stream():
+        response = await client.chat.completions.create(
+            model=LLM_MODEL,
+            max_tokens=512,
+            messages=messages,
+            stream=True,
+        )
+        async for chunk in response:
+            if not chunk.choices:
+                continue
+            text = chunk.choices[0].delta.content or ""
+            if text:
+                yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'done': True})}\n\n"
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/health")

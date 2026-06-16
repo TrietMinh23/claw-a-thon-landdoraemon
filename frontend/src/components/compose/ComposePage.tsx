@@ -90,7 +90,7 @@ export default function ComposePage() {
     programName && `Tên chương trình: ${programName}`,
     datetimeStr && `Thời gian: ${datetimeStr}`,
     location && `Địa điểm: ${location}`,
-    hrbpName && `Tên HRBP: ${hrbpName}`,
+    hrbpName && `Tên PIC: ${hrbpName}`,
     additionalNotes,
   ].filter(Boolean).join('\n')
 
@@ -250,7 +250,7 @@ export default function ComposePage() {
                     style={{ width: '100%' }}
                   />
                 </Form.Item>
-                <Form.Item label="Tên HRBP" style={{ marginBottom: 10 }}>
+                <Form.Item label="Tên PIC" style={{ marginBottom: 10 }}>
                   <Input
                     value={hrbpName}
                     onChange={e => setHrbpName(e.target.value)}
