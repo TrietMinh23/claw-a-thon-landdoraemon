@@ -17,3 +17,10 @@ mockup/
 docs/superpowers/
 
 .env
+.greennode.json
+vcr-credentials.json
+
+# Token caches (contain real auth tokens — never commit)
+token_cache
+token_cache.json
+.agentbase/token_cache

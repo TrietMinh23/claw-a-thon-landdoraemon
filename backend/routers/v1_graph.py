@@ -36,7 +36,8 @@ def auth_poll():
         done = graph_service.poll_device_flow()
         return {"done": done}
     except UpstreamAuthError as e:
-        raise HTTPException(502, str(e))
+        # Fatal error from Microsoft — return as JSON so frontend can display it
+        return {"done": False, "fatal_error": str(e)}
     except AuthError as e:
         raise HTTPException(400, str(e))
 

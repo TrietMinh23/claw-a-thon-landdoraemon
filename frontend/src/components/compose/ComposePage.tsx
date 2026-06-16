@@ -1,5 +1,5 @@
 // frontend/src/components/compose/ComposePage.tsx
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Row, Col, Card, Steps, Button, Input, Select, Tag, Typography, Space, Flex, Divider, message, DatePicker, TimePicker, Form } from 'antd'
 import { ThunderboltOutlined } from '@ant-design/icons'
 import WorkshopSelector from './WorkshopSelector'
@@ -7,7 +7,7 @@ import { EMAIL_TYPES } from './EmailTypeSelector'
 import ImageUpload from './ImageUpload'
 import ChatPanel from '../shared/ChatPanel'
 import EmailPreview from '../shared/EmailPreview'
-import { streamGenerateV1, streamChatEdit } from '../../api'
+import { streamGenerateV1, streamChatEdit, postEmailDraft } from '../../api'
 import { useEmailContext } from '../../contexts/EmailContext'
 import type { Participant, Workshop, ChatMessage, EmailDraft, ImageEntry } from '../../types'
 
@@ -43,6 +43,7 @@ export default function ComposePage() {
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
   const [location, setLocation] = useState('')
+  const [hrbpName, setHrbpName] = useState('')
   const [additionalNotes, setAdditionalNotes] = useState('')
 
   const [emailType, setEmailType] = useState('invite')
@@ -53,6 +54,31 @@ export default function ComposePage() {
   const [emailHtml, setEmailHtml] = useState('')
   const [subject, setSubject] = useState('')
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+
+  // Throttle HTML re-renders during streaming
+  const accRef = useRef('')
+  const lastFlushRef = useRef(0)
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const stripFences = (s: string) =>
+    s.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```\s*$/, '').trim()
+
+  const flushHtml = useCallback(() => {
+    flushTimerRef.current = null
+    lastFlushRef.current = Date.now()
+    setEmailHtml(stripFences(accRef.current))
+  }, [])
+
+  const onChunk = useCallback((chunk: string) => {
+    accRef.current += chunk
+    const now = Date.now()
+    if (now - lastFlushRef.current >= 250) {
+      if (flushTimerRef.current) clearTimeout(flushTimerRef.current)
+      flushHtml()
+    } else if (!flushTimerRef.current) {
+      flushTimerRef.current = setTimeout(flushHtml, 250)
+    }
+  }, [flushHtml])
   const [isRefining, setIsRefining] = useState(false)
 
   const datetimeStr = [
@@ -64,6 +90,7 @@ export default function ComposePage() {
     programName && `Tên chương trình: ${programName}`,
     datetimeStr && `Thời gian: ${datetimeStr}`,
     location && `Địa điểm: ${location}`,
+    hrbpName && `Tên HRBP: ${hrbpName}`,
     additionalNotes,
   ].filter(Boolean).join('\n')
 
@@ -78,20 +105,26 @@ export default function ComposePage() {
     setGenState('generating')
     setEmailHtml('')
     setChatHistory([])
+    accRef.current = ''
+    lastFlushRef.current = 0
+    if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
     try {
-      let acc = ''
       await streamGenerateV1(
-        { email_type: emailType, workshop_context: workshopContext, extra_instructions: extraInstructions, image_data_urls: images },
-        chunk => { acc += chunk; setEmailHtml(acc) },
+        { email_type: emailType, workshop_context: workshopContext, extra_instructions: extraInstructions, file_ids: images.map(i => i.fileId) },
+        onChunk,
       )
+      // Final flush — strip markdown fences model sometimes outputs
+      if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
+      setEmailHtml(stripFences(accRef.current))
       const typeLabel = EMAIL_TYPES.find(t => t.value === emailType)?.label ?? emailType
       setSubject(`[Toro] ${typeLabel} — ${selectedWorkshop?.short ?? programName}`)
       setGenState('ready')
     } catch (e) {
+      if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
       message.error(String(e))
       setGenState('idle')
     }
-  }, [emailType, workshopContext, extraInstructions, images, selectedWorkshop, programName])
+  }, [emailType, workshopContext, extraInstructions, images, selectedWorkshop, programName, onChunk])
 
   const handleChatSend = useCallback(async (msg: string, imageDataUrl?: string) => {
     const userMsg: ChatMessage = { role: 'user', content: msg }
@@ -99,12 +132,16 @@ export default function ComposePage() {
     setChatHistory(updatedHistory)
     setIsRefining(true)
     setGenState('editing')
+    accRef.current = ''
+    lastFlushRef.current = 0
+    if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
     try {
-      let acc = ''
       await streamChatEdit(
         { current_email: emailHtml, message: msg, history: updatedHistory, image_data_url: imageDataUrl },
-        chunk => { acc += chunk; setEmailHtml(acc) },
+        onChunk,
       )
+      if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null }
+      setEmailHtml(stripFences(accRef.current))
       setChatHistory(h => [...h, { role: 'assistant', content: 'Email đã được cập nhật.' }])
       setGenState('ready')
     } catch (e) {
@@ -115,7 +152,7 @@ export default function ComposePage() {
     }
   }, [emailHtml, chatHistory])
 
-  const handleSendToQueue = useCallback(() => {
+  const handleSendToQueue = useCallback(async () => {
     const typeLabel = EMAIL_TYPES.find(t => t.value === emailType)?.label ?? emailType
     const preview = emailHtml.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 160)
     const now = new Date()
@@ -129,10 +166,18 @@ export default function ComposePage() {
       status: 'pending',
       time: now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       preview,
+      subject,
+      body: emailHtml,
+      to: participants.map(p => p.email).filter(Boolean),
+    }
+    try {
+      await postEmailDraft(draft)
+    } catch {
+      message.warning('Không thể lưu lên server, email chỉ tồn tại trong session này.')
     }
     addEmail(draft)
     message.success('Email đã được thêm vào hàng chờ duyệt!')
-  }, [emailType, emailHtml, participants.length, addEmail])
+  }, [emailType, emailHtml, participants, subject, addEmail])
 
   const selectedTypeConfig = EMAIL_TYPES.find(t => t.value === emailType)
   const toLabel = participants.length > 0
@@ -203,6 +248,13 @@ export default function ComposePage() {
                     allowClear
                     options={MEETING_ROOMS.map(r => ({ value: r, label: r }))}
                     style={{ width: '100%' }}
+                  />
+                </Form.Item>
+                <Form.Item label="Tên HRBP" style={{ marginBottom: 10 }}>
+                  <Input
+                    value={hrbpName}
+                    onChange={e => setHrbpName(e.target.value)}
+                    placeholder="VD: Nguyễn Văn A"
                   />
                 </Form.Item>
                 <Form.Item label="Ghi chú thêm" style={{ marginBottom: 0 }}>

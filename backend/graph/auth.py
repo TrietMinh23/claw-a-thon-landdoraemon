@@ -54,7 +54,6 @@ def _refresh_access_token(refresh_token: str) -> dict:
         "grant_type": "refresh_token",
         "refresh_token": refresh_token,
         "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
         "scope": SCOPE_STRING,
     })
     result = r.json()

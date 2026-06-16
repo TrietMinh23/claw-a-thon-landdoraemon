@@ -9,6 +9,8 @@ interface EmailContextValue {
   refreshEmails: () => Promise<void>
   optimisticApprove: (id: string) => Promise<void>
   addEmail: (draft: EmailDraft) => void
+  deleteEmail: (id: string) => void
+  updateEmail: (id: string, patch: Partial<EmailDraft>) => void
 }
 
 const EmailContext = createContext<EmailContextValue>({
@@ -17,6 +19,8 @@ const EmailContext = createContext<EmailContextValue>({
   refreshEmails: async () => {},
   optimisticApprove: async () => {},
   addEmail: () => {},
+  deleteEmail: () => {},
+  updateEmail: () => {},
 })
 
 export function EmailProvider({ children }: { children: ReactNode }) {
@@ -29,11 +33,25 @@ export function EmailProvider({ children }: { children: ReactNode }) {
 
   const optimisticApprove = useCallback(async (id: string) => {
     setEmails(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' as const } : e))
-    await apiApproveEmail(id)
+    try {
+      await apiApproveEmail(id)
+    } catch (err) {
+      // Rollback on failure
+      setEmails(prev => prev.map(e => e.id === id ? { ...e, status: 'pending' as const } : e))
+      throw err
+    }
   }, [])
 
   const addEmail = useCallback((draft: EmailDraft) => {
     setEmails(prev => [draft, ...prev])
+  }, [])
+
+  const deleteEmail = useCallback((id: string) => {
+    setEmails(prev => prev.filter(e => e.id !== id))
+  }, [])
+
+  const updateEmail = useCallback((id: string, patch: Partial<EmailDraft>) => {
+    setEmails(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e))
   }, [])
 
   useEffect(() => { refreshEmails() }, [refreshEmails])
@@ -41,7 +59,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const pendingCount = emails.filter(e => e.status === 'pending').length
 
   return (
-    <EmailContext.Provider value={{ emails, pendingCount, refreshEmails, optimisticApprove, addEmail }}>
+    <EmailContext.Provider value={{ emails, pendingCount, refreshEmails, optimisticApprove, addEmail, deleteEmail, updateEmail }}>
       {children}
     </EmailContext.Provider>
   )

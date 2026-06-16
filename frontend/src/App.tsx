@@ -4,7 +4,10 @@ import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './components/dashboard/DashboardPage'
 import ComposePage from './components/compose/ComposePage'
 import EmailApprovalPage from './components/emails/EmailApprovalPage'
-import PlaceholderPage from './components/shared/PlaceholderPage'
+import WorkshopPage from './components/workshop/WorkshopPage'
+import RSVPPage from './components/rsvp/RSVPPage'
+import FeedbackPage from './components/feedback/FeedbackPage'
+import CertificatesPage from './components/certificates/CertificatesPage'
 
 export default function App() {
   return (
@@ -13,12 +16,10 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="/compose" element={<ComposePage />} />
         <Route path="/emails" element={<EmailApprovalPage />} />
-        <Route path="/workshop" element={<PlaceholderPage title="Workshop Detail" />} />
-        <Route path="/rsvp" element={<PlaceholderPage title="RSVP Tracker" />} />
-        <Route path="/feedback" element={<PlaceholderPage title="Feedback Report" />} />
-        <Route path="/certificates" element={<PlaceholderPage title="Certificates" />} />
-        <Route path="/analytics" element={<PlaceholderPage title="Analytics" />} />
-        <Route path="/history" element={<PlaceholderPage title="History" />} />
+        <Route path="/workshop" element={<WorkshopPage />} />
+        <Route path="/rsvp" element={<RSVPPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/certificates" element={<CertificatesPage />} />
       </Route>
     </Routes>
   )

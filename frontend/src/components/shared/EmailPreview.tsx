@@ -1,7 +1,7 @@
 // frontend/src/components/shared/EmailPreview.tsx
 import { useState } from 'react'
-import { Button, Input, Space, Flex } from 'antd'
-import { EditOutlined, EyeOutlined } from '@ant-design/icons'
+import { Input, Space, Flex, Segmented } from 'antd'
+import { EyeOutlined, CodeOutlined } from '@ant-design/icons'
 
 interface Props {
   html: string
@@ -22,7 +22,7 @@ export default function EmailPreview({
   subject = '',
   onSubjectChange,
 }: Props) {
-  const [editMode, setEditMode] = useState(false)
+  const [mode, setMode] = useState<'preview' | 'html'>('preview')
 
   if (!html && !isGenerating) {
     return (
@@ -65,21 +65,23 @@ export default function EmailPreview({
         </Flex>
       </div>
 
-      {/* Toggle edit/preview */}
+      {/* Preview / HTML toggle */}
       {html && !isGenerating && onEmailChange && (
         <Flex justify="flex-end">
-          <Button
+          <Segmented
             size="small"
-            icon={editMode ? <EyeOutlined /> : <EditOutlined />}
-            onClick={() => setEditMode(m => !m)}
-          >
-            {editMode ? 'Xem preview' : 'Sửa HTML'}
-          </Button>
+            value={mode}
+            onChange={v => setMode(v as 'preview' | 'html')}
+            options={[
+              { value: 'preview', icon: <EyeOutlined />, label: 'Preview' },
+              { value: 'html', icon: <CodeOutlined />, label: 'HTML' },
+            ]}
+          />
         </Flex>
       )}
 
       {/* Content */}
-      {editMode && onEmailChange ? (
+      {mode === 'html' && onEmailChange ? (
         <Input.TextArea
           value={html}
           onChange={e => onEmailChange(e.target.value)}

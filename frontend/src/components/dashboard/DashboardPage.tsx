@@ -54,7 +54,7 @@ function ToroWidget() {
   }
 
   return (
-    <Card title={<Flex align="center" gap={8}><RobotOutlined style={{ color: '#16a34a' }} /><span>Toro Chat</span></Flex>} size="small">
+    <Card title={<Flex align="center" gap={8}><RobotOutlined style={{ color: '#16a34a' }} /><span>Toro Chat</span></Flex>} size="small" style={{ flex: 1 }}>
       <div style={{ height: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
@@ -163,9 +163,10 @@ export default function DashboardPage() {
       </Card>
 
       {/* Bottom row: email queue + toro chat */}
-      <Row gutter={16}>
-        <Col span={12}>
+      <Row gutter={16} align="stretch">
+        <Col span={12} style={{ display: 'flex', flexDirection: 'column' }}>
           <Card
+            style={{ flex: 1 }}
             title="Email chờ duyệt"
             extra={<Button type="link" size="small" onClick={() => navigate('/emails')}>Xem tất cả</Button>}
           >
@@ -185,7 +186,7 @@ export default function DashboardPage() {
             </Space>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col span={12} style={{ display: 'flex', flexDirection: 'column' }}>
           <ToroWidget />
         </Col>
       </Row>

@@ -81,6 +81,9 @@ export interface EmailDraft {
   status: 'pending' | 'approved'
   time: string
   preview: string
+  body?: string
+  subject?: string
+  to?: string[]
 }
 
 export interface ImageEntry {

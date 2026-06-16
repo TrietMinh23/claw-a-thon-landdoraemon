@@ -95,6 +95,15 @@ export async function approveEmail(id: string): Promise<void> {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
+export async function postEmailDraft(draft: EmailDraft): Promise<void> {
+  const res = await fetch('/api/v1/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(draft),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
 // --- v1 compose ---
 export async function uploadImage(file: File): Promise<{ file_id: string }> {
   const form = new FormData()
@@ -122,6 +131,26 @@ export async function uploadRecipients(file: File): Promise<{ participants: Part
   const form = new FormData()
   form.append('file', file)
   const res = await fetch('/api/v1/compose/upload-recipients', { method: 'POST', body: form })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// --- Graph auth ---
+export async function getGraphAuthStatus(): Promise<{ authenticated: boolean; user_display_name?: string; user_email?: string }> {
+  const res = await fetch('/api/v1/graph/auth/status')
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+export async function startGraphAuth(): Promise<{ user_code: string; verification_uri: string; message: string; expires_in: number }> {
+  const res = await fetch('/api/v1/graph/auth/start', { method: 'POST' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+export async function pollGraphAuth(): Promise<{ done: boolean; fatal_error?: string }> {
+  const res = await fetch('/api/v1/graph/auth/poll', { method: 'POST' })
+  if (res.status === 400) return { done: false }
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }

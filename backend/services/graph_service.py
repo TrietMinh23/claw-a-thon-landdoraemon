@@ -1,14 +1,14 @@
 import os
 import time
-import httpx
+import threading
+
+import msal
 
 from graph.auth import (
     _load_token_cache,
     _save_token_cache,
     CLIENT_ID,
-    CLIENT_SECRET,
-    TOKEN_URL,
-    DEVICE_CODE_URL,
+    TENANT_ID,
     SCOPE_STRING,
     TOKEN_CACHE_PATH,
 )
@@ -16,7 +16,47 @@ from graph.client import GraphClient
 from graph.exceptions import AuthError, UpstreamAuthError
 
 _client: GraphClient | None = None
-_pending_flow: dict | None = None
+_msal_app: msal.PublicClientApplication | None = None
+
+# Auth state shared between start_device_flow and poll_device_flow
+_auth_state: dict = {
+    "flow": None,          # MSAL flow dict
+    "result": None,        # token result once done
+    "error": None,         # error message if failed
+    "thread": None,        # background thread
+}
+_auth_lock = threading.Lock()
+
+
+def _get_msal_app() -> msal.PublicClientApplication:
+    global _msal_app
+    if _msal_app is None:
+        _msal_app = msal.PublicClientApplication(
+            CLIENT_ID,
+            authority=f"https://login.microsoftonline.com/{TENANT_ID}",
+        )
+    return _msal_app
+
+
+def _acquire_in_background(flow: dict) -> None:
+    app = _get_msal_app()
+    try:
+        result = app.acquire_token_by_device_flow(flow)
+        print(f"[graph_service] MSAL result: {list(result.keys())}, error={result.get('error', 'none')}")
+        with _auth_lock:
+            if "access_token" in result:
+                cache = {
+                    "access_token": result["access_token"],
+                    "refresh_token": result.get("refresh_token", ""),
+                    "expires_at": time.time() + result.get("expires_in", 3600),
+                }
+                _save_token_cache(cache)
+                _auth_state["result"] = result
+            else:
+                _auth_state["error"] = result.get("error_description", result.get("error", "Unknown error"))
+    except Exception as e:
+        with _auth_lock:
+            _auth_state["error"] = str(e)
 
 
 def is_authenticated() -> bool:
@@ -37,21 +77,22 @@ def get_client() -> GraphClient:
 
 
 def start_device_flow() -> dict:
-    global _pending_flow
-    r = httpx.post(DEVICE_CODE_URL, data={
-        "client_id": CLIENT_ID,
-        "scope": SCOPE_STRING,
-    })
-    flow = r.json()
+    global _auth_state
+    app = _get_msal_app()
+    scopes = SCOPE_STRING.split()
+    flow = app.initiate_device_flow(scopes=scopes)
     if "user_code" not in flow:
         raise AuthError(f"Device flow failed: {flow.get('error_description', flow)}")
-    _pending_flow = {
-        "device_code": flow["device_code"],
-        "user_code": flow["user_code"],
-        "verification_uri": flow["verification_uri"],
-        "expires_at": time.time() + flow.get("expires_in", 900),
-        "interval": flow.get("interval", 5),
-    }
+
+    with _auth_lock:
+        # Cancel previous thread if still running
+        _auth_state["flow"] = flow
+        _auth_state["result"] = None
+        _auth_state["error"] = None
+        t = threading.Thread(target=_acquire_in_background, args=(flow,), daemon=True)
+        _auth_state["thread"] = t
+        t.start()
+
     return {
         "user_code": flow["user_code"],
         "verification_uri": flow["verification_uri"],
@@ -60,40 +101,31 @@ def start_device_flow() -> dict:
 
 
 def poll_device_flow() -> bool:
-    global _pending_flow
-    if _pending_flow is None:
-        raise AuthError("No device flow in progress. Call /auth/start first.")
-    if time.time() > _pending_flow["expires_at"]:
-        _pending_flow = None
-        raise AuthError("Device flow expired. Call /auth/start again.")
-    r = httpx.post(TOKEN_URL, data={
-        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-        "device_code": _pending_flow["device_code"],
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-    })
-    result = r.json()
-    if "access_token" in result:
-        cache = {
-            "access_token": result["access_token"],
-            "refresh_token": result.get("refresh_token", ""),
-            "expires_at": time.time() + result.get("expires_in", 3600),
-        }
-        _save_token_cache(cache)
-        _pending_flow = None
+    if is_authenticated():
         return True
-    error = result.get("error")
-    if error in ("authorization_pending", "slow_down"):
-        if error == "slow_down":
-            _pending_flow["interval"] += 5
-        return False
-    _pending_flow = None
-    raise UpstreamAuthError(result.get("error_description", error))
+
+    with _auth_lock:
+        if _auth_state["flow"] is None:
+            raise AuthError("No device flow in progress. Call /auth/start first.")
+        if _auth_state["result"] is not None:
+            return True
+        if _auth_state["error"] is not None:
+            err = _auth_state["error"]
+            _auth_state["flow"] = None
+            _auth_state["result"] = None
+            _auth_state["error"] = None
+            raise UpstreamAuthError(err)
+
+    return False
 
 
 def reset_client() -> None:
-    global _client, _pending_flow
+    global _client, _msal_app
     _client = None
-    _pending_flow = None
+    _msal_app = None
+    with _auth_lock:
+        _auth_state["flow"] = None
+        _auth_state["result"] = None
+        _auth_state["error"] = None
     if os.path.exists(TOKEN_CACHE_PATH):
         os.remove(TOKEN_CACHE_PATH)

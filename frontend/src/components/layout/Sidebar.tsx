@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Menu, Badge } from 'antd'
 import {
   HomeOutlined, EditOutlined, MailOutlined, AppstoreOutlined,
-  UserOutlined, MessageOutlined, TrophyOutlined, BarChartOutlined, HistoryOutlined,
+  UserOutlined, MessageOutlined, TrophyOutlined,
 } from '@ant-design/icons'
 import type { ReactNode } from 'react'
 import { useEmailContext } from '../../contexts/EmailContext'
@@ -16,8 +16,6 @@ const NAV: { key: string; icon: ReactNode; label: string; badge?: boolean }[] = 
   { key: '/rsvp', icon: <UserOutlined />, label: 'RSVP Tracker' },
   { key: '/feedback', icon: <MessageOutlined />, label: 'Feedback Report' },
   { key: '/certificates', icon: <TrophyOutlined />, label: 'Certificates' },
-  { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
-  { key: '/history', icon: <HistoryOutlined />, label: 'History' },
 ]
 
 export default function Sidebar() {
