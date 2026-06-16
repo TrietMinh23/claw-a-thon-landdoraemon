@@ -43,7 +43,7 @@ export default function ComposePage() {
   const [genState, setGenState] = useState<GenState>('idle')
   const [emailHtml, setEmailHtml] = useState('')
   const [subject, setSubject] = useState('')
-  const [, setChatHistory] = useState<ChatMessage[]>([])
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
   const [isRefining, setIsRefining] = useState(false)
 
   const accRef = useRef('')
