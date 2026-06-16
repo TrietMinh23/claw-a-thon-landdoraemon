@@ -79,11 +79,11 @@ export default function StepContent({
             style={{ width: '100%' }}
           />
         </Form.Item>
-        <Form.Item label="Tên PIC">
+        <Form.Item label="PIC domain">
           <Input
             value={hrbpName}
             onChange={e => setHrbpName(e.target.value)}
-            placeholder="VD: Nguyễn Văn A"
+            placeholder="VD: anhnh19"
           />
         </Form.Item>
         <Form.Item label="Ghi chú thêm">
