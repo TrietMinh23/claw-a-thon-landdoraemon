@@ -1,5 +1,6 @@
 // frontend/src/components/workshop/WorkshopPage.tsx
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   Row,
   Col,
@@ -331,9 +332,21 @@ function TimelineTab() {
   )
 }
 
+// ─── Workshop meta (mirrors mock_data.py) ────────────────────────────────────
+
+const WORKSHOP_META: Record<string, { name: string; dates: string; status: string; trainer: string; room: string; total: number; sessionCount: number }> = {
+  'wb-001': { name: 'Strengths-based Development Program', dates: '25/03 – 31/03/2026', status: 'Pre-workshop', trainer: 'External Facilitator / Internal L&D', room: 'Đà Nẵng–Hà Nội / Sài Gòn–Đà Nẵng', total: 104, sessionCount: 4 },
+  'wb-002': { name: 'Leadership Mindset for Mid-level',    dates: '18/06/2026',          status: 'Pre-workshop', trainer: 'Internal L&D',                       room: 'Sài Gòn–Đà Nẵng Room',             total: 48,  sessionCount: 2 },
+  'wb-003': { name: 'Onboarding Orientation Q3',           dates: '05/07/2026',          status: 'Planning',     trainer: 'HRBP',                               room: 'TBD',                               total: 22,  sessionCount: 1 },
+}
+const DEFAULT_META = WORKSHOP_META['wb-001']
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function WorkshopPage() {
+  const location = useLocation()
+  const workshopId = (location.state as { workshopId?: string } | null)?.workshopId ?? 'wb-001'
+  const meta = WORKSHOP_META[workshopId] ?? DEFAULT_META
   const totalConfirmed = sessions.reduce((sum, s) => sum + s.confirmed, 0)
 
   return (
@@ -344,15 +357,15 @@ export default function WorkshopPage() {
           <Col>
             <Space direction="vertical" size={4}>
               <Title level={4} style={{ margin: 0 }}>
-                Strengths-based Development Program
+                {meta.name}
               </Title>
               <Space wrap size={8}>
                 <Tag icon={<CalendarOutlined />} color="blue">
-                  25/03 – 31/03/2026
+                  {meta.dates}
                 </Tag>
-                <Tag color="orange">Pre-workshop</Tag>
-                <Tag icon={<UserOutlined />}>External Facilitator / Internal L&D</Tag>
-                <Tag icon={<EnvironmentOutlined />}>Đà Nẵng–Hà Nội / Sài Gòn–Đà Nẵng</Tag>
+                <Tag color="orange">{meta.status}</Tag>
+                <Tag icon={<UserOutlined />}>{meta.trainer}</Tag>
+                <Tag icon={<EnvironmentOutlined />}>{meta.room}</Tag>
               </Space>
             </Space>
           </Col>
@@ -365,7 +378,7 @@ export default function WorkshopPage() {
           <Card size="small">
             <Statistic
               title="Tổng participants"
-              value={104}
+              value={meta.total}
               prefix={<TeamOutlined />}
               valueStyle={{ color: '#1677ff' }}
             />
@@ -378,7 +391,7 @@ export default function WorkshopPage() {
               value={totalConfirmed}
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#52c41a' }}
-              suffix={<Text type="secondary" style={{ fontSize: 14 }}> / 104</Text>}
+              suffix={<Text type="secondary" style={{ fontSize: 14 }}> / {meta.total}</Text>}
             />
           </Card>
         </Col>
@@ -386,7 +399,7 @@ export default function WorkshopPage() {
           <Card size="small">
             <Statistic
               title="Số sessions"
-              value={4}
+              value={meta.sessionCount}
               prefix={<CalendarOutlined />}
               valueStyle={{ color: '#722ed1' }}
             />

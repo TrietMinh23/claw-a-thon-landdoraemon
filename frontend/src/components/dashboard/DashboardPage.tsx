@@ -111,9 +111,9 @@ export default function DashboardPage() {
       {/* Stats row */}
       <Row gutter={16}>
         {[
-          { title: 'Workshop đang chạy', value: runningCount, icon: <AppstoreOutlined />, color: '#16a34a', onClick: () => navigate('/compose') },
+          { title: 'Workshop đang chạy', value: runningCount, icon: <AppstoreOutlined />, color: '#16a34a', onClick: () => navigate('/workshop') },
           { title: 'Email chờ duyệt', value: pendingCount, icon: <MailOutlined />, color: '#f97316', onClick: () => navigate('/emails') },
-          { title: 'Tổng học viên', value: totalStudents, icon: <TeamOutlined />, color: '#2563eb', onClick: () => navigate('/rsvp') },
+          { title: 'Tổng học viên', value: totalStudents, icon: <TeamOutlined />, color: '#2563eb', onClick: () => navigate('/workshop') },
           { title: 'RSVP cần follow-up', value: rsvpFollowup, icon: <ExclamationCircleOutlined />, color: '#dc2626', onClick: () => navigate('/rsvp') },
         ].map(stat => (
           <Col span={6} key={stat.title}>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                 display: 'flex', alignItems: 'center', gap: 16, padding: '12px 0',
                 borderBottom: '1px solid #f0f0f0', cursor: 'pointer',
               }}
-              onClick={() => navigate('/workshop')}
+              onClick={() => navigate('/workshop', { state: { workshopId: w.id } })}
             >
               <Avatar style={{ background: COLOR_MAP[w.color] ?? '#6b7280', fontWeight: 700 }}>
                 {w.abbr}
