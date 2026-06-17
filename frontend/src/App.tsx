@@ -1,5 +1,7 @@
 // frontend/src/App.tsx
 import { Routes, Route } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
+import LoginPage from './components/auth/LoginPage'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './components/dashboard/DashboardPage'
 import ComposePage from './components/compose/ComposePage'
@@ -10,6 +12,9 @@ import FeedbackPage from './components/feedback/FeedbackPage'
 import CertificatesPage from './components/certificates/CertificatesPage'
 
 export default function App() {
+  const { user } = useAuth()
+  if (!user) return <LoginPage />
+
   return (
     <Routes>
       <Route element={<AppLayout />}>

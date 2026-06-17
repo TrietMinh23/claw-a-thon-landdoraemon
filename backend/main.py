@@ -199,7 +199,7 @@ async def dashboard_chat(req: DashboardChatRequest):
         ctx.append(f"- {a['name']} ({a['email']}) | BU={a['bu']} | session={a['session']} | rsvp={a['rsvp']}")
 
     system_prompt = (
-        "Bạn là Toro, Brand Ambassador của L&D team tại ZaloPay. "
+        "Bạn là Toro, Brand Ambassador của L&D team tại Zalopay. "
         "Hỗ trợ L&D Ops quản lý workshop, theo dõi RSVP, duyệt email. "
         "Trả lời ngắn gọn, thân thiện bằng tiếng Việt.\n\n"
         "Dữ liệu hệ thống hiện tại:\n" + "\n".join(ctx)

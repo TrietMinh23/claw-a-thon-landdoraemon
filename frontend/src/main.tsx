@@ -5,13 +5,16 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { EmailProvider } from './contexts/EmailContext.tsx'
+import { AuthProvider } from './contexts/AuthContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <EmailProvider>
-        <App />
-      </EmailProvider>
+      <AuthProvider>
+        <EmailProvider>
+          <App />
+        </EmailProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )
