@@ -282,4 +282,4 @@ npx tsc --noEmit
 
 ## Nhóm phát triển
 
-Dự án được xây dựng trong khuôn khổ **Greennode Claw-a-thon** bởi team **Land Doraemon**.
+Dự án được xây dựng trong khuôn khổ **Greennode Claw-a-thon** bởi team **L&Doraemon**.
