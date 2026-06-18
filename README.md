@@ -1,8 +1,8 @@
 # Toro Assistant
 
-**Toro Assistant** là hệ thống hỗ trợ L&D Ops tại Zalopay soạn thảo, cá nhân hóa và gửi email workshop — được xây dựng cho cuộc thi **Greennode Claw-a-thon**.
+**Toro Assistant** là hệ thống hỗ trợ L&D Ops tại ZaloPay soạn thảo, cá nhân hóa và gửi email workshop — được xây dựng cho cuộc thi **Greennode Claw-a-thon**.
 
-> **Toro** là Brand Ambassador của bộ phận L&D tại Zalopay, được tích hợp như một AI assistant giúp soạn email bằng tiếng Việt với giọng văn ấm áp, thân thiện.
+> **Toro** là Brand Ambassador của bộ phận L&D tại ZaloPay, được tích hợp như một AI assistant giúp soạn email bằng tiếng Việt với giọng văn ấm áp, thân thiện.
 
 ---
 
@@ -268,6 +268,15 @@ pytest tests/ -v
 cd frontend
 npx tsc --noEmit
 ```
+
+---
+
+## Tài khoản đăng nhập 
+
+| Trường | Giá trị |
+|---|---|
+| **Email** | `ld@zalopay.vn` hoặc `admin@zalopay.vn` |
+| **Password** | `Toro@2026` |
 
 ---
 
